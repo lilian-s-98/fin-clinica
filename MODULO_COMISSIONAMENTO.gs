@@ -17,17 +17,24 @@
 //                                 quando variacao_particular_convenio=SIM
 //   variacao_por_servico       -> SIM/NÃO: separa em categoria A / B
 //   categoria_a_nome, categoria_a_codigos (códigos de serviço separados
-//     por vírgula, ex: "FISIO.M,DTM"), percentual_a
-//   categoria_b_nome, categoria_b_codigos, percentual_b
+//     por vírgula, ex: "FISIO.M,DTM"), percentual_a, unidade_a
+//   categoria_b_nome, categoria_b_codigos, percentual_b, unidade_b
 //   ativo
 //
-//  Regra de repasse (PJ variável):
+//   unidade_a / unidade_b: '%' (percentual sobre o valor do item, padrão)
+//     ou 'R$' (valor FIXO por atendimento/sessão, multiplicado pela
+//     quantidade — usado por alguns profissionais do PDF que recebem,
+//     por exemplo, "R$ 40,00 por sessão de Fisio Motora" em vez de %).
+//
+//  Regra de repasse (PJ variável), quando unidade='%':
 //    comissao_item = valor_item * (% de conclusão do item) * percentual/100
-//  onde percentual vem de categoria_a ou categoria_b, dependendo do
-//  código do serviço do item (categoria_a_codigos = "Todos" cobre tudo).
+//  quando unidade='R$':
+//    comissao_item = percentual_a (aqui usado como R$/unidade) * quantidade * pctConclusao
+//  Exemplo do enunciado (%): guia de R$1000, profissional concluiu 50%
+//  dos procedimentos, comissão acordada 70% => 1000*0.5*0.7 = R$350.
 // ============================================================
 
-const REGRAS_COMISSAO_HEADERS = ['profissional_id','profissional_nome','tipo_vinculo','tipo_remuneracao','valor_fixo_mensal','fixo_recebe_comissao_guia','variacao_particular_convenio','percentual_particular','variacao_por_servico','categoria_a_nome','categoria_a_codigos','percentual_a','categoria_b_nome','categoria_b_codigos','percentual_b','ativo'];
+const REGRAS_COMISSAO_HEADERS = ['profissional_id','profissional_nome','tipo_vinculo','tipo_remuneracao','valor_fixo_mensal','fixo_recebe_comissao_guia','variacao_particular_convenio','percentual_particular','variacao_por_servico','categoria_a_nome','categoria_a_codigos','percentual_a','unidade_a','categoria_b_nome','categoria_b_codigos','percentual_b','unidade_b','ativo'];
 
 function _shRegrasComissao() {
   return SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEETS.REGRAS_COMISSAO);
@@ -59,8 +66,8 @@ function salvarRegraComissao(dados, usuario) {
       dados.tipo_remuneracao||'VARIAVEL', _sanNum(dados.valor_fixo_mensal), dados.fixo_recebe_comissao_guia||'NÃO',
       dados.variacao_particular_convenio||'NÃO', _sanNum(dados.percentual_particular),
       dados.variacao_por_servico||'NÃO',
-      _san(dados.categoria_a_nome)||'Todos', _san(dados.categoria_a_codigos)||'Todos', _sanNum(dados.percentual_a),
-      _san(dados.categoria_b_nome), _san(dados.categoria_b_codigos), _sanNum(dados.percentual_b),
+      _san(dados.categoria_a_nome)||'Todos', _san(dados.categoria_a_codigos)||'Todos', _sanNum(dados.percentual_a), dados.unidade_a==='R$'?'R$':'%',
+      _san(dados.categoria_b_nome), _san(dados.categoria_b_codigos), _sanNum(dados.percentual_b), dados.unidade_b==='R$'?'R$':'%',
       dados.ativo||'SIM'
     ];
     for (let i = 1; i < allData.length; i++) {
@@ -84,8 +91,8 @@ function _validarRegraComissao(dados) {
     const v = pct(dados[campo]);
     if (v < 0 || v > 100) throw new Error(`Campo ${campo} precisa estar entre 0 e 100 (recebido: ${dados[campo]}).`);
   });
-  if (dados.tipo_remuneracao === 'FIXO' && !_sanNum(dados.valor_fixo_mensal)) {
-    throw new Error('Profissional com remuneração FIXO precisa de um valor_fixo_mensal > 0.');
+  if (dados.tipo_remuneracao === 'FIXO' && dados.tipo_vinculo === 'PJ' && !_sanNum(dados.valor_fixo_mensal)) {
+    throw new Error('Profissional PJ com remuneração FIXO precisa de um valor_fixo_mensal > 0. (CLT não precisa — salário é tratado fora deste sistema.)');
   }
   if (dados.variacao_por_servico === 'SIM' && (!dados.categoria_a_codigos || !dados.categoria_b_codigos)) {
     throw new Error('Marcou "variação por serviço" mas faltou preencher os códigos da categoria A e/ou B.');
@@ -99,7 +106,7 @@ function _garantirRascunhoRegraComissao(id, nome, tipoVinculo) {
   if (!sh) return;
   const allData = sh.getDataRange().getValues();
   for (let i = 1; i < allData.length; i++) if (allData[i][0] === id) return; // já existe
-  sh.appendRow([id, nome, tipoVinculo, 'VARIAVEL', 0, 'NÃO', 'NÃO', 0, 'NÃO', 'Todos', 'Todos', 0, '', '', 0, 'SIM']);
+  sh.appendRow([id, nome, tipoVinculo, 'VARIAVEL', 0, 'NÃO', 'NÃO', 0, 'NÃO', 'Todos', 'Todos', 0, '%', '', '', 0, '%', 'SIM']);
   _criarNotificacao('config_pendente', `Configurar comissão de ${nome}`,
     `Profissional ${nome} foi cadastrado com regra de comissão em 0%. Acesse Regras de Comissão e configure o percentual correto antes de fechar o próximo faturamento.`,
     'gestor', 'sistema');
@@ -113,10 +120,17 @@ function _categoriaDoCodigo(regra, codigo) {
     const itens = String(lista).split(',').map(s => s.trim().toUpperCase());
     return itens.includes('TODOS') || itens.includes(String(cod).toUpperCase());
   };
-  if (regra.variacao_por_servico !== 'SIM') return { percentual: regra.percentual_a || 0, categoria: regra.categoria_a_nome };
-  if (emLista(regra.categoria_b_codigos, codigo)) return { percentual: regra.percentual_b || 0, categoria: regra.categoria_b_nome };
+  if (regra.variacao_por_servico !== 'SIM') return { percentual: regra.percentual_a || 0, categoria: regra.categoria_a_nome, unidade: regra.unidade_a || '%' };
+  if (emLista(regra.categoria_b_codigos, codigo)) return { percentual: regra.percentual_b || 0, categoria: regra.categoria_b_nome, unidade: regra.unidade_b || '%' };
   // padrão cai na categoria A (que normalmente é "Todos")
-  return { percentual: regra.percentual_a || 0, categoria: regra.categoria_a_nome };
+  return { percentual: regra.percentual_a || 0, categoria: regra.categoria_a_nome, unidade: regra.unidade_a || '%' };
+}
+
+// Calcula a comissão de UM item já com a categoria resolvida — trata tanto
+// percentual (%) quanto valor fixo por atendimento (R$/unidade * quantidade).
+function _comissaoPorUnidade(cat, valorItem, quantidade, pctConclusao) {
+  if (cat.unidade === 'R$') return cat.percentual * (quantidade||1) * pctConclusao; // aqui "percentual" guarda o R$/unidade
+  return valorItem * pctConclusao * (cat.percentual/100);
 }
 
 // % de conclusão de um item de guia: SIM=100%, NÃO=0%.
@@ -161,9 +175,9 @@ function calcularComissaoGuia(guia_id) {
       const cat = _categoriaDoCodigo(regra, it.codigo);
       const pctConclusao = _pctConclusaoItem(it);
       const valorItem = _sanNum(it.valor_total);
-      const comissaoItem = valorItem * pctConclusao * (cat.percentual/100);
+      const comissaoItem = _comissaoPorUnidade(cat, valorItem, _sanNum(it.quantidade,1), pctConclusao);
       comissaoProf += comissaoItem;
-      return { item_id: it.id, codigo: it.codigo, valor_item: valorItem, pct_conclusao: pctConclusao, categoria: cat.categoria, percentual: cat.percentual, comissao_item: comissaoItem };
+      return { item_id: it.id, codigo: it.codigo, valor_item: valorItem, pct_conclusao: pctConclusao, categoria: cat.categoria, percentual: cat.percentual, unidade: cat.unidade, comissao_item: comissaoItem };
     });
     total += comissaoProf;
     detalhe.push({ profissional_id: profId, comissao: comissaoProf, itens: itensDoProf });
@@ -182,14 +196,83 @@ function calcularComissaoParticular(particular) {
     return { ok:true, comissao:0, aviso:'Remuneração fixa — não recebe % por atendimento.' };
   }
   const valor = _sanNum(particular.valor);
-  let percentual;
+  const qtd = _sanNum(particular.quantidade,1);
   if (regra.variacao_particular_convenio === 'SIM') {
-    percentual = regra.percentual_particular;
-  } else {
-    const cat = _categoriaDoCodigo(regra, particular.servico_id);
-    percentual = cat.percentual;
+    // percentual_particular é sempre % (não há variante R$ fixo para particular no PDF)
+    return { ok:true, comissao: valor * (regra.percentual_particular/100), percentual: regra.percentual_particular };
   }
-  return { ok:true, comissao: valor * (percentual/100), percentual };
+  const cat = _categoriaDoCodigo(regra, particular.servico_id);
+  const comissao = _comissaoPorUnidade(cat, valor, qtd, 1);
+  return { ok:true, comissao, percentual: cat.percentual, unidade: cat.unidade };
+}
+
+// ============================================================
+//  POPULAÇÃO INICIAL (chamada por migrarV6 em Codigo_Principal.gs)
+//  Extraída do PDF "REGRAS_POR_PROFISSIONAL". Só grava profissionais
+//  que AINDA NÃO têm linha em Regras_Comissao — nunca sobrescreve o
+//  que você já editou manualmente.
+//
+//  ATENÇÃO — revise depois de rodar, principalmente:
+//   • PROF001 (Bruno) e PROF019 (Viviane): assumi que "ambulatório" e
+//     "Fisio. Motora" correspondem ao código FISIO.M, e "especializado"/
+//     "Home Care" aos códigos LIB/HOME. Confirme se está certo.
+//   • PROF014 (Juliana Archimino): o PDF não trouxe um código de serviço
+//     para ela. Deixei "Todos" — troque pelo código real assim que
+//     cadastrar o serviço "Coluna" em Serviços/Códigos.
+//   • Linhas com unidade_a/unidade_b = "R$" (Viviane, Luciana, Brena,
+//     Vinicius) pagam valor FIXO por atendimento/sessão, não percentual
+//     — a fórmula já trata isso, mas confira os valores na planilha.
+// ============================================================
+function _popularRegrasComissaoPadrao(ss, log) {
+  const shProf = ss.getSheetByName(CONFIG.SHEETS.PROFISSIONAIS);
+  const shRegras = ss.getSheetByName(CONFIG.SHEETS.REGRAS_COMISSAO);
+  if (!shProf || !shRegras) return;
+
+  const existentes = shRegras.getLastRow() > 1 ? shRegras.getRange(2,1,shRegras.getLastRow()-1,1).getValues().map(r=>r[0]) : [];
+
+  // dados do PDF — chave = id do profissional (mesmo id usado na aba Profissionais)
+  const PADRAO = {
+    PROF001: ['BRUNO NASCIMENTO','PJ','VARIAVEL',0,'NÃO','NÃO',0,'SIM','Ambulatório','FISIO.M',40,'%','Especializado','LIB',60,'%','SIM'],
+    PROF002: ['LETICIA HELEN','CLT','FIXO',0,'NÃO','NÃO',0,'NÃO','Todos','Todos',0,'%','','',0,'%','SIM'],
+    PROF003: ['LUCAS REZENDE','PJ','VARIAVEL',0,'NÃO','NÃO',0,'NÃO','Todos','Todos',80,'%','','',0,'%','SIM'],
+    PROF004: ['MARIANA MENDONÇA','PJ','VARIAVEL',0,'NÃO','NÃO',0,'NÃO','Todos','Todos',80,'%','','',0,'%','SIM'],
+    PROF005: ['MILA PIRES','PJ','VARIAVEL',0,'NÃO','NÃO',50,'NÃO','Todos','Todos',60,'%','','',0,'%','SIM'],
+    PROF006: ['MILENA MORAES','PJ','VARIAVEL',0,'NÃO','NÃO',0,'SIM','Acup. Clínica','ACUP.IN',50,'%','Acup. Socorro','ACUP.EX',60,'%','SIM'],
+    PROF007: ['OSMALÍ SILVA','PJ','FIXO',2200,'NÃO','NÃO',0,'NÃO','Todos','Todos',0,'%','','',0,'%','SIM'],
+    PROF008: ['YANNA MENEZES','PJ','VARIAVEL',0,'NÃO','NÃO',0,'NÃO','Clínica','Todos',50,'%','','',0,'%','SIM'],
+    PROF009: ['YASMIN SILVA','PJ','VARIAVEL',0,'SIM','NÃO',0,'NÃO','Todos','Todos',63,'%','','',0,'%','SIM'],
+    PROF010: ['LUIZA GABRIELA','PJ','VARIAVEL',0,'NÃO','NÃO',0,'SIM','Pilates','PILATES,PILATESCASA',40,'%','Quiro/RPG/DTM','QUIRO,RPG,DTM',50,'%','SIM'],
+    PROF011: ['JAMILLE GONÇALVES','PJ','VARIAVEL',0,'NÃO','NÃO',0,'NÃO','Todos','Todos',60,'%','','',0,'%','SIM'],
+    PROF012: ['JULIANA LINHARES','PJ','VARIAVEL',0,'NÃO','NÃO',0,'NÃO','Todos','Todos',60,'%','','',0,'%','SIM'],
+    PROF013: ['JOSI NASCIMENTO','PJ','VARIAVEL',0,'NÃO','NÃO',0,'SIM','Fisio. Motora','FISIO.M',40,'%','DTM','DTM',50,'%','SIM'],
+    PROF014: ['JULIANA ARCHIMINO','PJ','VARIAVEL',0,'NÃO','NÃO',0,'NÃO','Todos (REVISAR CÓDIGO)','Todos',50,'%','','',0,'%','SIM'],
+    PROF015: ['LAIS MARINHO','PJ','VARIAVEL',0,'NÃO','NÃO',0,'NÃO','Todos','Todos',50,'%','','',0,'%','SIM'],
+    PROF016: ['MARIA APARECIDA','PJ','VARIAVEL',0,'SIM','NÃO',0,'NÃO','Todos','Todos',60,'%','','',0,'%','SIM'],
+    PROF017: ['GRACE KELLY','PJ','VARIAVEL',0,'SIM','NÃO',0,'NÃO','Todos','Todos',63,'%','','',0,'%','SIM'],
+    PROF018: ['DANIELA','PJ','VARIAVEL',0,'SIM','NÃO',0,'NÃO','Todos','Todos',63,'%','','',0,'%','SIM'],
+    PROF019: ['VIVIANE COSTA','PJ','VARIAVEL',0,'NÃO','NÃO',0,'SIM','Fisio. Motora','FISIO.M',40,'R$','Home Care','HOME',60,'%','SIM'],
+    PROF020: ['LUCIANA','PJ','VARIAVEL',0,'NÃO','NÃO',0,'NÃO','Todos','FISIO.M,HOME',50,'R$','','',0,'%','SIM'],
+    PROF021: ['BRENA MIRELI','PJ','VARIAVEL',0,'NÃO','SIM',50,'NÃO','Todos','NUTRI',60,'R$','','',0,'%','SIM'],
+    PROF022: ['VINICIUS SOBRAL','PJ','VARIAVEL',0,'NÃO','NÃO',0,'SIM','Consulta','ORTO',50,'R$','Infiltração','INF.CORT,INF.ACIDO',60,'%','SIM']
+  };
+
+  Object.keys(PADRAO).forEach(id => {
+    if (existentes.indexOf(id) !== -1) { log.push('Regra de comissão já existia (mantida): ' + id); return; }
+    const p = PADRAO[id];
+    const nome = p[0];
+    shRegras.appendRow([id, nome, p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15], p[16]]);
+    log.push('Regra de comissão criada para ' + nome + ' (' + id + ') — CONFIRA os valores na planilha.');
+  });
+
+  // profissionais que existem na aba Profissionais mas não estão no PADRAO acima
+  // (cadastrados depois do PDF, por exemplo) recebem o rascunho de 0% de sempre.
+  const profs = shProf.getLastRow() > 1 ? shProf.getRange(2,1,shProf.getLastRow()-1,shProf.getLastColumn()).getValues() : [];
+  profs.forEach(r => {
+    const id = r[0];
+    if (PADRAO[id] || existentes.indexOf(id) !== -1) return;
+    _garantirRascunhoRegraComissao(id, r[1], r[3]);
+    log.push('AVISO: profissional ' + r[1] + ' (' + id + ') sem regra conhecida — rascunho 0% criado, configure manualmente.');
+  });
 }
 
 // Resumo agregado de comissões por profissional num período — alimenta o

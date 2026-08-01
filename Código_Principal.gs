@@ -55,7 +55,8 @@ const CONFIG = {
     REGRAS_CONVENIO:   'Regras_Convenio',
     REGRAS_COMISSAO:   'Regras_Comissao',
     GLOSAS:            'Glosas',
-    LOTES:             'Lotes'
+    LOTES:             'Lotes',
+    DESPESAS_RECORRENTES: 'Despesas_Recorrentes'
   }
 };
 
@@ -88,7 +89,8 @@ function setupInicial() {
   _criarAba(ss, CONFIG.SHEETS.PARTICULARES,   ['id','data','mes','paciente_id','paciente_nome','profissional_id','profissional_nome','servico_id','servico_nome','valor','forma_pgto','quantidade','tipo_qtd','observacao','status','lancado_por','criado_em','agenda_id']);
   _criarAba(ss, CONFIG.SHEETS.GUIAS,          ['id','data','mes','convenio_id','convenio_nome','paciente_id','paciente_nome','profissional_id','profissional_nome','lote','protocolo','num_nf','valor_total','prazo_dias','data_envio','data_prev_pgto','data_pgto_real','status','valor_glosado','observacao','lancado_por','criado_em','lote_id']);
   _criarAba(ss, CONFIG.SHEETS.ITENS_GUIA,     ['id','guia_id','convenio_nome','codigo','descricao','quantidade','valor_unitario','valor_total','profissional_id','profissional_nome','concluido']);
-  _criarAba(ss, CONFIG.SHEETS.DESPESAS,       ['id','data','mes','categoria','descricao','fornecedor','valor','forma_pgto','tipo','status','data_vencimento','data_pgto','comprovante_url','observacao','lancado_por','criado_em']);
+  _criarAba(ss, CONFIG.SHEETS.DESPESAS,       ['id','data','mes','categoria','descricao','fornecedor','valor','forma_pgto','tipo','status','data_vencimento','data_pgto','comprovante_url','observacao','lancado_por','criado_em','origem_recorrente_id']);
+  _criarAba(ss, CONFIG.SHEETS.DESPESAS_RECORRENTES, ['id','descricao','fornecedor','categoria','tipo','valor_padrao','regra_vencimento','forma_pgto','data_inicio','data_fim','ativo','observacao','criado_por','criado_em']);
   _criarAba(ss, CONFIG.SHEETS.RECEBIMENTOS,   ['id','data','tipo','referencia_id','convenio_nome','paciente_nome','valor','forma_pgto','mes','observacao','criado_em']);
   _criarAba(ss, CONFIG.SHEETS.CHECKLIST_DEF,  ['id','perfil','titulo','descricao','categoria','obrigatorio','ordem','ativo','icone']);
   _criarAba(ss, CONFIG.SHEETS.CHECKLIST_HIST, ['id','data','usuario_id','usuario_nome','perfil','checklist_id','titulo','concluido','hora_conclusao','observacao','criado_em']);
@@ -97,7 +99,7 @@ function setupInicial() {
   _criarAba(ss, CONFIG.SHEETS.LOGIN_ATTEMPTS, ['email','tentativas','ultimo_at','bloqueado_ate']);
   // --- novas abas v6.0 ---
   _criarAba(ss, CONFIG.SHEETS.REGRAS_CONVENIO,['convenio_id','convenio_nome','tipo_faturamento','dia_fixo','dia_corte','prazo_envio_dias_uteis','prazo_recebimento_dias','atraso_frequente','ativo','observacao']);
-  _criarAba(ss, CONFIG.SHEETS.REGRAS_COMISSAO,['profissional_id','profissional_nome','tipo_vinculo','tipo_remuneracao','valor_fixo_mensal','fixo_recebe_comissao_guia','variacao_particular_convenio','percentual_particular','variacao_por_servico','categoria_a_nome','categoria_a_codigos','percentual_a','categoria_b_nome','categoria_b_codigos','percentual_b','ativo']);
+  _criarAba(ss, CONFIG.SHEETS.REGRAS_COMISSAO,['profissional_id','profissional_nome','tipo_vinculo','tipo_remuneracao','valor_fixo_mensal','fixo_recebe_comissao_guia','variacao_particular_convenio','percentual_particular','variacao_por_servico','categoria_a_nome','categoria_a_codigos','percentual_a','unidade_a','categoria_b_nome','categoria_b_codigos','percentual_b','unidade_b','ativo']);
   _criarAba(ss, CONFIG.SHEETS.GLOSAS,         ['id','guia_id','convenio_nome','data_glosa','valor_glosado','motivo','status','observacao','lancado_por','criado_em']);
   _criarAba(ss, CONFIG.SHEETS.LOTES,          ['id','lote','convenio_id','convenio_nome','data_fechamento','data_envio','data_prev_recebimento','valor_total_lote','valor_recebido','valor_glosado','status','guias_ids','observacao','criado_em','atualizado_em']);
 
@@ -117,9 +119,10 @@ function migrarV6() {
   // 1) cria as abas novas, se não existirem (sem mexer nas que já existem)
   const novasAbas = {
     [CONFIG.SHEETS.REGRAS_CONVENIO]: ['convenio_id','convenio_nome','tipo_faturamento','dia_fixo','dia_corte','prazo_envio_dias_uteis','prazo_recebimento_dias','atraso_frequente','ativo','observacao'],
-    [CONFIG.SHEETS.REGRAS_COMISSAO]: ['profissional_id','profissional_nome','tipo_vinculo','tipo_remuneracao','valor_fixo_mensal','fixo_recebe_comissao_guia','variacao_particular_convenio','percentual_particular','variacao_por_servico','categoria_a_nome','categoria_a_codigos','percentual_a','categoria_b_nome','categoria_b_codigos','percentual_b','ativo'],
+    [CONFIG.SHEETS.REGRAS_COMISSAO]: ['profissional_id','profissional_nome','tipo_vinculo','tipo_remuneracao','valor_fixo_mensal','fixo_recebe_comissao_guia','variacao_particular_convenio','percentual_particular','variacao_por_servico','categoria_a_nome','categoria_a_codigos','percentual_a','unidade_a','categoria_b_nome','categoria_b_codigos','percentual_b','unidade_b','ativo'],
     [CONFIG.SHEETS.GLOSAS]: ['id','guia_id','convenio_nome','data_glosa','valor_glosado','motivo','status','observacao','lancado_por','criado_em'],
-    [CONFIG.SHEETS.LOTES]: ['id','lote','convenio_id','convenio_nome','data_fechamento','data_envio','data_prev_recebimento','valor_total_lote','valor_recebido','valor_glosado','status','guias_ids','observacao','criado_em','atualizado_em']
+    [CONFIG.SHEETS.LOTES]: ['id','lote','convenio_id','convenio_nome','data_fechamento','data_envio','data_prev_recebimento','valor_total_lote','valor_recebido','valor_glosado','status','guias_ids','observacao','criado_em','atualizado_em'],
+    [CONFIG.SHEETS.DESPESAS_RECORRENTES]: ['id','descricao','fornecedor','categoria','tipo','valor_padrao','regra_vencimento','forma_pgto','data_inicio','data_fim','ativo','observacao','criado_por','criado_em']
   };
   Object.keys(novasAbas).forEach(nome => {
     let sh = ss.getSheetByName(nome);
@@ -137,6 +140,10 @@ function migrarV6() {
   // 2) adiciona colunas novas em abas existentes, SEM apagar as atuais
   log.push(..._garantirColunas(ss, CONFIG.SHEETS.ITENS_GUIA, ['profissional_id','profissional_nome','concluido']));
   log.push(..._garantirColunas(ss, CONFIG.SHEETS.GUIAS, ['lote_id']));
+  // se você já rodou uma versão anterior desta migração (que deu erro), a aba
+  // Regras_Comissao pode existir com cabeçalho antigo — garante as colunas novas.
+  log.push(..._garantirColunas(ss, CONFIG.SHEETS.REGRAS_COMISSAO, ['unidade_a','unidade_b']));
+  log.push(..._garantirColunas(ss, CONFIG.SHEETS.DESPESAS, ['origem_recorrente_id']));
 
   // 3) popula Regras_Convenio a partir da aba Convênios + regras do PDF,
   //    SOMENTE para convênios que ainda não têm regra cadastrada.
@@ -145,6 +152,11 @@ function migrarV6() {
   // 4) popula Regras_Comissao a partir da aba Profissionais,
   //    SOMENTE para profissionais que ainda não têm regra cadastrada.
   _popularRegrasComissaoPadrao(ss, log);
+
+  // 5) popula Despesas_Recorrentes com a lista de despesas fixas/recorrentes
+  //    que você passou, SOMENTE se a aba ainda estiver vazia (não roda de novo
+  //    se você já editou/completou manualmente).
+  _popularDespesasRecorrentesPadrao(ss, log);
 
   Logger.log(log.join('\n'));
   return { ok: true, log };
@@ -682,7 +694,7 @@ function salvarDespesa(dados, usuario) {
     const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEETS.DESPESAS);
     const id = 'DESP' + new Date().getTime();
     const mes = _mesDoDate(new Date(dados.data||dados.data_vencimento||new Date()));
-    sh.appendRow([id,dados.data||'',mes,dados.categoria,dados.descricao,dados.fornecedor||'',_sanNum(dados.valor),dados.forma_pgto||'',dados.tipo,dados.status,dados.data_vencimento||'',dados.data_pgto||'','',dados.observacao||'',usuario.nome,new Date()]);
+    sh.appendRow([id,dados.data||'',mes,dados.categoria,dados.descricao,dados.fornecedor||'',_sanNum(dados.valor),dados.forma_pgto||'',dados.tipo,dados.status,dados.data_vencimento||'',dados.data_pgto||'','',dados.observacao||'',usuario.nome,new Date(),'']);
     _log(usuario.nome,'NOVA_DESPESA',`R$ ${dados.valor}`);
     return {ok:true,id};
   } catch(e) { return {ok:false,msg:e.toString()}; }
@@ -690,7 +702,7 @@ function salvarDespesa(dados, usuario) {
 
 function getDespesas(filtros) {
   const rows = _getSheet(SpreadsheetApp.getActiveSpreadsheet(), CONFIG.SHEETS.DESPESAS);
-  const headers = ['id','data','mes','categoria','descricao','fornecedor','valor','forma_pgto','tipo','status','data_vencimento','data_pgto','comprovante_url','observacao','lancado_por','criado_em'];
+  const headers = ['id','data','mes','categoria','descricao','fornecedor','valor','forma_pgto','tipo','status','data_vencimento','data_pgto','comprovante_url','observacao','lancado_por','criado_em','origem_recorrente_id'];
   let result = rows.map(r => _toObj(headers,r));
   if (filtros && filtros.mes && filtros.mes !== 'todos') result = result.filter(r => r.mes === filtros.mes);
   return result;

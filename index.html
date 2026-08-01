@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Instituto da Dor — Gestão v5.0</title>
+<title>Instituto da Dor — Gestão v6.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
 <style>
@@ -193,8 +193,6 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 .btn-g:hover{background:var(--surface-2);border-color:var(--border-2)}
 .btn-d{background:var(--red);color:#fff;border-color:var(--red)}
 .btn-d:hover{background:#b91c1c}
-.btn-ai{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;box-shadow:0 2px 10px rgba(99,102,241,.3)}
-.btn-ai:hover{box-shadow:0 4px 18px rgba(99,102,241,.4)}
 .btn-sm{padding:5px 11px;font-size:.75rem}
 .btn-xs{padding:3px 8px;font-size:.7rem}
 .btn-ic{width:15px;height:15px;flex-shrink:0}
@@ -289,8 +287,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 .rk-val span{font-size:.66rem;color:var(--text-3)}
 
 /* AI quick buttons (usados nos painéis do dashboard) */
-.ai-qbtn{background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.2);border-radius:var(--r-full);padding:4px 11px;font-size:.72rem;cursor:pointer;transition:all var(--tx)}
-.ai-qbtn:hover{background:rgba(255,255,255,.22);color:#fff}
+
 
 /* AGENDA */
 .ag-wrap{overflow-x:auto}
@@ -348,6 +345,38 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 .dl-item{display:flex;align-items:center;gap:6px;font-size:.72rem;margin-bottom:5px}
 .dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 
+/* TABS */
+.tabs{display:flex;gap:2px;border-bottom:1.5px solid var(--border);margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab-btn{padding:10px 16px;font-size:.79rem;font-weight:600;color:var(--text-3);background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap;transition:all var(--tx);font-family:var(--fb)}
+.tab-btn:hover{color:var(--text-2);background:var(--surface-2)}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
+.tab-pane{display:none}
+.tab-pane.active{display:block;animation:fadeIn .18s ease}
+
+/* FEE CONFIG (taxas de maquininha) */
+.fee-card{border:1.5px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:14px;background:var(--surface-2)}
+.fee-card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.fee-card-hd h4{font-family:var(--fd);font-size:.86rem;font-weight:700;color:var(--text)}
+.fee-tbl{width:100%;border-collapse:collapse;font-size:.78rem}
+.fee-tbl th{padding:6px 8px;text-align:left;font-size:.62rem;text-transform:uppercase;color:var(--text-3);font-weight:700;letter-spacing:.4px}
+.fee-tbl td{padding:4px 8px}
+.fee-tbl input{width:72px;padding:6px 8px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:.78rem;text-align:right;font-variant-numeric:tabular-nums}
+.fee-tbl input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,73,175,.08)}
+.fee-note{font-size:.71rem;color:var(--text-3);margin-top:8px;line-height:1.5}
+
+/* PRICE TABLE (pacotes) */
+.price-tbl-wrap{overflow-x:auto}
+.price-input{width:90px;padding:6px 8px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:.79rem;text-align:right;font-variant-numeric:tabular-nums}
+.price-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,73,175,.08)}
+
+/* RECEIPT BREAKDOWN (recibo de simulação de taxa) */
+.recibo-box{background:var(--surface-2);border:1.5px dashed var(--border-2);border-radius:var(--r-md);padding:14px 16px;margin-top:10px}
+.recibo-row{display:flex;justify-content:space-between;padding:5px 0;font-size:.81rem;border-bottom:1px dotted var(--border)}
+.recibo-row:last-child{border-bottom:none}
+.recibo-row.total{font-weight:800;font-size:.9rem;color:var(--blue);border-top:1.5px solid var(--border-2);margin-top:4px;padding-top:9px}
+.recibo-row .lbl{color:var(--text-2)}
+.recibo-row .val{font-variant-numeric:tabular-nums;font-weight:600}
+
 /* PROF GRID */
 .prof-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
 .prof-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:15px;display:flex;align-items:center;gap:12px;transition:all var(--tx-md)}
@@ -392,7 +421,6 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 @keyframes fadeDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-@keyframes aiDot{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
 </style>
 </head>
@@ -491,6 +519,9 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
         <div class="nav-item" data-page="a-receber" onclick="goPage('a-receber')">
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>A Receber
         </div>
+        <div class="nav-item" data-page="faturamento" onclick="goPage('faturamento')">
+          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Faturamento
+        </div>
         <div class="nav-item" data-page="despesas" onclick="goPage('despesas')">
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Despesas
         </div>
@@ -499,21 +530,6 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
         </div>
         <div class="nav-item" data-page="desempenho" onclick="goPage('desempenho')">
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>Desempenho da Equipe
-        </div>
-      </div>
-      <div class="nav-sec nav-fin" style="display:none">
-        <div class="nav-lbl">Faturamento &amp; Convênios</div>
-        <div class="nav-item" data-page="lotes" onclick="goPage('lotes')">
-          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Lotes / Protocolos
-        </div>
-        <div class="nav-item" data-page="glosas" onclick="goPage('glosas')">
-          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Glosas
-        </div>
-        <div class="nav-item" data-page="conferencia" onclick="goPage('conferencia')">
-          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Conferência de Prazos
-        </div>
-        <div class="nav-item" data-page="projecao" onclick="goPage('projecao')">
-          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Projeção de Recebimentos
         </div>
       </div>
       <div class="nav-sec nav-cad" style="display:none">
@@ -525,18 +541,6 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Profissionais
         </div>
       </div>
-      <div class="nav-sec nav-fin" style="display:none">
-        <div class="nav-lbl">Configurações Financeiras</div>
-        <div class="nav-item" data-page="regras-convenio" onclick="goPage('regras-convenio')">
-          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 19.07l1.41-1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M1 12h2M21 12h2M12 1v2M12 21v2"/></svg>Regras de Convênio
-        </div>
-        <div class="nav-item" data-page="regras-comissao" onclick="goPage('regras-comissao')">
-          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Regras de Comissão
-        </div>
-        <div class="nav-item" data-page="despesas-recorrentes" onclick="goPage('despesas-recorrentes')">
-          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Despesas Recorrentes
-        </div>
-      </div>
       <div class="nav-sec nav-adm" style="display:none">
         <div class="nav-lbl">Administração</div>
         <div class="nav-item" data-page="conformidade" onclick="goPage('conformidade')">
@@ -544,6 +548,9 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
         </div>
         <div class="nav-item" data-page="checklist-config" onclick="goPage('checklist-config')">
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 19.07l1.41-1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M1 12h2M21 12h2M12 1v2M12 21v2"/></svg>Config. Checklist
+        </div>
+        <div class="nav-item" data-page="config-financeira" onclick="goPage('config-financeira')">
+          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Config. Preços e Taxas
         </div>
         <div class="nav-item" data-page="usuarios" onclick="goPage('usuarios')">
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Usuários e Acesso
@@ -604,13 +611,6 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
     <section class="page" id="page-conformidade"></section>
     <section class="page" id="page-checklist-config"></section>
     <section class="page" id="page-desempenho"></section>
-    <section class="page" id="page-lotes"></section>
-    <section class="page" id="page-glosas"></section>
-    <section class="page" id="page-conferencia"></section>
-    <section class="page" id="page-projecao"></section>
-    <section class="page" id="page-regras-convenio"></section>
-    <section class="page" id="page-regras-comissao"></section>
-    <section class="page" id="page-despesas-recorrentes"></section>
 
     <!-- NOVO PARTICULAR -->
     <section class="page" id="page-novo-particular">
@@ -625,23 +625,50 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
             <div class="ff"><label>Ou Nome Novo <span class="hint">(se não cadastrado)</span></label><input type="text" id="p-pac-novo" placeholder="Digite o nome do paciente"></div>
             <div class="ff"><label>Profissional <span class="req">*</span></label><select id="p-prof"><option value="">Selecione o profissional...</option></select></div>
             <div class="ff"><label>Serviço <span class="req">*</span></label><select id="p-srv" onchange="autoValPart()"><option value="">Selecione o serviço...</option></select></div>
-            <div class="ff"><label>Tipo de Atendimento</label>
-              <select id="p-tipo">
+            <div class="ff"><label>Pacote / Tipo de Atendimento</label>
+              <select id="p-tipo" onchange="autoValPart()">
                 <option value="1 SESSÃO">1 Sessão</option><option value="AVALIAÇÃO">Avaliação Inicial</option>
                 <option value="CONSULTA">Consulta</option><option value="5 SESSÕES">Pacote 5 Sessões</option>
                 <option value="10 SESSÕES">Pacote 10 Sessões</option><option value="DOMICILIAR">Home Care / Domiciliar</option>
               </select>
+              <div class="ff-tip" id="p-tipo-hint"></div>
             </div>
             <div class="ff"><label>Quantidade</label><input type="number" id="p-qtd" value="1" min="1"></div>
-            <div class="ff"><label>Valor Total (R$) <span class="req">*</span></label><input type="number" id="p-val" placeholder="0,00" step="0.01" min="0"></div>
+            <div class="ff"><label>Valor Bruto (R$) <span class="req">*</span></label><input type="number" id="p-val" placeholder="0,00" step="0.01" min="0" onchange="calcRecibo()" oninput="calcRecibo()">
+              <div class="ff-tip">Preenchido pela tabela de preços; ajuste se houve desconto à vista.</div>
+            </div>
             <div class="ff"><label>Como o paciente pagou? <span class="req">*</span></label>
-              <select id="p-forma">
-                <option value="PIX">PIX</option><option value="DÉBITO">Débito</option>
-                <option value="CRÉDITO 1X">Crédito 1x</option><option value="CRÉDITO 2X">Crédito 2x</option>
-                <option value="CRÉDITO 3X">Crédito 3x</option><option value="ESPÉCIE">Dinheiro / Espécie</option>
+              <select id="p-forma" onchange="atualizarCamposPgto()">
+                <option value="PIX">PIX</option><option value="ESPÉCIE">Dinheiro / Espécie</option>
                 <option value="TRANSFERÊNCIA">Transferência</option>
+                <option value="DÉBITO">Cartão de Débito</option>
+                <option value="CRÉDITO">Cartão de Crédito</option>
               </select>
             </div>
+          </div>
+          <div id="p-cartao-wrap" style="display:none;margin-top:10px">
+            <div class="fg fg3">
+              <div class="ff"><label>Maquininha <span class="req">*</span></label>
+                <select id="p-maquininha" onchange="calcRecibo()"><option value="">Selecione...</option></select>
+              </div>
+              <div class="ff" id="p-parcelas-wrap" style="display:none">
+                <label>Parcelas</label>
+                <select id="p-parcelas" onchange="calcRecibo()">
+                  <option value="1">1x</option><option value="2">2x</option><option value="3">3x</option>
+                  <option value="4">4x</option><option value="5">5x</option><option value="6">6x</option>
+                  <option value="7">7x</option><option value="8">8x</option><option value="9">9x</option>
+                  <option value="10">10x</option><option value="11">11x</option><option value="12">12x</option>
+                </select>
+              </div>
+              <div class="ff" id="p-antecip-wrap" style="display:none">
+                <label>Recebimento <span class="hint">(crédito parcelado)</span></label>
+                <select id="p-antecipado" onchange="calcRecibo()">
+                  <option value="NAO">Prazo normal (mais barato)</option>
+                  <option value="SIM">Antecipado — recebo tudo já (taxa extra)</option>
+                </select>
+              </div>
+            </div>
+            <div id="p-recibo" class="recibo-box" style="display:none"></div>
           </div>
           <div class="fg fg2" style="margin-top:10px">
             <div class="ff"><label>Observações <span class="hint">(opcional)</span></label><input type="text" id="p-obs" placeholder="Ex: retorno, pacote pré-pago..."></div>
@@ -752,6 +779,50 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
       </div>
       <div id="ar-lw" class="lw"><div class="spin"></div><div class="lw-t">Carregando guias...</div></div>
       <div id="ar-lista" style="display:none"></div>
+    </section>
+
+    <!-- FATURAMENTO -->
+    <section class="page" id="page-faturamento">
+      <div class="page-hd"><div><h2>Faturamento</h2><div class="page-hd-sub">Resumo consolidado, regras de faturamento e conferência de prazos por convênio</div></div><button class="btn btn-g btn-sm" onclick="carregarFaturamento()"><svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Atualizar</button></div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="fat-resumo" onclick="switchTab('faturamento','fat-resumo')">Resumo por Convênio</button>
+        <button class="tab-btn" data-tab="fat-prazos" onclick="switchTab('faturamento','fat-prazos')">Conferência de Prazos</button>
+        <button class="tab-btn" data-tab="fat-regras" onclick="switchTab('faturamento','fat-regras')">Regras de Faturamento</button>
+      </div>
+      <div class="tab-pane active" id="fat-resumo">
+        <div id="fat-resumo-lw" class="lw"><div class="spin"></div><div class="lw-t">Carregando resumo...</div></div>
+        <div id="fat-resumo-cont" style="display:none"></div>
+      </div>
+      <div class="tab-pane" id="fat-prazos">
+        <div class="alert alert-blue"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Compara a data prevista de recebimento (calculada pela regra do convênio) com hoje. Convênios marcados como "atraso frequente" ganham 10 dias de tolerância antes de virar crítico.</div></div>
+        <div id="fat-prazos-lw" class="lw"><div class="spin"></div><div class="lw-t">Conferindo prazos...</div></div>
+        <div id="fat-prazos-cont" style="display:none"></div>
+      </div>
+      <div class="tab-pane" id="fat-regras">
+        <div class="alert alert-blue"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Define quando cada convênio fatura e quanto tempo leva até o dinheiro entrar. Isso alimenta a projeção de recebimento e o fluxo de caixa futuro automaticamente.</div></div>
+        <div id="fat-regras-lw" class="lw"><div class="spin"></div><div class="lw-t">Carregando regras...</div></div>
+        <div id="fat-regras-cont" style="display:none"></div>
+      </div>
+    </section>
+
+    <!-- CONFIG FINANCEIRA (taxas de cartão + tabela de preços) -->
+    <section class="page" id="page-config-financeira">
+      <div class="page-hd"><div><h2>Configuração de Preços e Taxas</h2><div class="page-hd-sub">Preços por pacote de serviço e taxas das maquininhas de cartão — usados para calcular o valor líquido a receber</div></div></div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="cf-precos" onclick="switchTab('config-financeira','cf-precos')">Preços por Pacote</button>
+        <button class="tab-btn" data-tab="cf-taxas" onclick="switchTab('config-financeira','cf-taxas')">Taxas de Cartão</button>
+      </div>
+      <div class="tab-pane active" id="cf-precos">
+        <div class="alert alert-blue"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Preço bruto (cheio) por serviço e tipo de pacote. Se o pagamento for à vista, aplique o desconto manualmente na hora do lançamento — este valor é a referência de tabela, não o valor final obrigatório.</div></div>
+        <div class="panel"><div class="pb"><div class="price-tbl-wrap"><table class="tbl" id="cf-precos-tbl"></table></div>
+          <div class="form-actions"><button class="btn btn-p btn-sm" onclick="salvarPrecosPacote()"><svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Tabela de Preços</button></div>
+        </div></div>
+      </div>
+      <div class="tab-pane" id="cf-taxas">
+        <div class="alert alert-warn"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><strong>Débito</strong> tem taxa única. <strong>Crédito</strong> varia por número de parcelas — quanto mais parcelas, maior a taxa. Se você <strong>antecipar o recebimento</strong> (receber tudo de uma vez em vez de esperar as parcelas), a maquininha cobra uma taxa extra por isso — configure abaixo. Preencha com os valores reais do seu contrato de cada maquininha.</div></div>
+        <div id="cf-taxas-cont"></div>
+        <div class="form-actions"><button class="btn btn-p btn-sm" onclick="salvarTaxasCartao()"><svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Taxas</button></div>
+      </div>
     </section>
 
     <!-- DESPESAS -->
@@ -1013,14 +1084,12 @@ const TITULOS = {
   'checklist-config':'Configurar Checklist','novo-particular':'Novo Particular',
   'nova-guia':'Nova Guia Convênio',agenda:'Agenda de Atendimentos',
   particulares:'Lançamentos Particulares',guias:'Guias e Convênios',
-  'a-receber':'A Receber',despesas:'Despesas',fluxo:'Fluxo de Caixa',desempenho:'Desempenho da Equipe',
+  'a-receber':'A Receber',faturamento:'Faturamento',despesas:'Despesas',fluxo:'Fluxo de Caixa',desempenho:'Desempenho da Equipe',
   pacientes:'Pacientes',profissionais:'Profissionais',usuarios:'Usuários e Acesso',auditoria:'Auditoria LGPD',
-  lotes:'Lotes / Protocolos',glosas:'Glosas',conferencia:'Conferência de Prazos de Recebimento',
-  projecao:'Projeção de Recebimentos','regras-convenio':'Regras de Faturamento por Convênio',
-  'regras-comissao':'Regras de Comissão por Profissional','despesas-recorrentes':'Despesas Recorrentes'
+  'config-financeira':'Configuração de Preços e Taxas'
 };
-const PERM_ADMIN = ['usuarios','auditoria'];
-const PERM_GESTOR = ['particulares','guias','a-receber','despesas','fluxo','desempenho','pacientes','profissionais','conformidade','checklist-config','lotes','glosas','conferencia','projecao','regras-convenio','regras-comissao','despesas-recorrentes'];
+const PERM_ADMIN = ['usuarios','auditoria','config-financeira'];
+const PERM_GESTOR = ['particulares','guias','a-receber','faturamento','despesas','fluxo','desempenho','pacientes','profissionais','conformidade','checklist-config'];
 
 function goPage(id){
   if(!APP.user)return;
@@ -1040,12 +1109,9 @@ function goPage(id){
     dashboard:renderDashboard,checklist:renderChecklistPage,conformidade:renderConformidade,
     'checklist-config':renderChecklistConfig,'novo-particular':popularDropsPart,
     'nova-guia':popularDropsGuia,agenda:renderAgenda,particulares:carregarParticulares,
-    guias:carregarGuias,'a-receber':carregarAReceber,despesas:carregarDespesas,
+    guias:carregarGuias,'a-receber':carregarAReceber,faturamento:carregarFaturamento,despesas:carregarDespesas,
     fluxo:carregarFluxo,desempenho:renderDesempenho,pacientes:carregarPacs,profissionais:carregarProfs,
-    usuarios:carregarUsrs,auditoria:carregarLog,
-    lotes:carregarLotes,glosas:carregarGlosas,conferencia:carregarConferencia,projecao:carregarProjecao,
-    'regras-convenio':carregarRegrasConvenio,'regras-comissao':carregarRegrasComissao,
-    'despesas-recorrentes':carregarDespesasRecorrentes
+    usuarios:carregarUsrs,auditoria:carregarLog,'config-financeira':carregarConfigFinanceira
   };
   if(actions[id]) actions[id]();
 }
@@ -1094,37 +1160,25 @@ const ICOS = {
   trofeu:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 6h2a2 2 0 0 1 0 4h-1M7 6H5a2 2 0 0 0 0 4h1"/>'
 };
 
-function buildAlertasFinanceiros(d){
-  const alertas=[];
-  const rg=d.resumoGlosas||{};
-  if(rg.totalGlosado>0) alertas.push({tipo:'err',ic:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',txt:`${fmt(rg.totalGlosado)} em glosas no período (${rg.qtd||0} registro(s))`,acao:"goPage('glosas')",btn:'Ver Glosas'});
-  const sl=d.statusLotes||{};
-  const lotesAbertos=(sl['Aberto']?.qtd||0)+(sl['Enviado']?.qtd||0);
-  if(lotesAbertos>0) alertas.push({tipo:'warn',ic:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',txt:`${lotesAbertos} lote(s) de convênio ainda não protocolado(s)`,acao:"goPage('lotes')",btn:'Ver Lotes'});
-  const av=(d.aVencer||[]).filter(g=>g.dias_restantes<0);
-  if(av.length>0) alertas.push({tipo:'err',ic:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',txt:`${av.length} guia(s) já vencida(s) sem baixa de pagamento`,acao:"goPage('a-receber')",btn:'Ver A Receber'});
-  if(!alertas.length) return '<div class="alert alert-info" style="margin:0"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div>Nenhum alerta financeiro no período — tudo em dia.</div></div>';
-  return alertas.map(a=>`<div class="alert alert-${a.tipo}" style="margin-bottom:8px"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${a.ic}</svg><div style="flex:1">${a.txt}</div><button class="btn btn-o btn-xs" onclick="${a.acao}">${a.btn}</button></div>`).join('');
-}
-
 function buildDashAdmin(d,cont){
   const k=d.kpis, n1=APP.user.nome.split(' ')[0];
   const pctMeta=Math.min(parseFloat(k.pctMeta||0),999).toFixed(1);
   cont.innerHTML=`
   <div class="sdiv">Painel Executivo — ${saudacao().replace(',','')} ${n1}</div>
-  <div class="panel" style="margin-bottom:15px">
-    <div class="ph"><span class="pt"><svg class="pt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Alertas Financeiros</span></div>
-    <div class="pb">${buildAlertasFinanceiros(d)}</div>
-  </div>
   <div class="kpi-grid">
-    ${kpi('','<path d="M12 2v20M2 12h20"/>','Faturado Total',fmt(k.totalFaturado),'Convênios + Particular')}
-    ${kpi('green',ICOS.part,'Recebido Total',fmt(k.totalRecebido),'Já em caixa')}
-    ${kpi('amber',ICOS.clock,'A Receber',fmt(k.totalAReceber),k.qtdGuiasPendentes+' guia(s) pendente(s)')}
+    ${kpi('','<path d="M12 2v20M2 12h20"/>','Receita Total',fmt(k.totalFaturado),'Convênios + Particular (faturado)')}
+    ${kpi('teal',ICOS.conv,'Convênios',fmt(k.recConvenio),'Faturado no período')}
+    ${kpi('green',ICOS.part,'Particular',fmt(k.recParticular),'Recebido no período')}
     ${kpi('red',ICOS.desp,'Despesas',fmt(k.totalDespesas),'Total lançado')}
     ${kpi(k.resultado>=0?'green':'red',ICOS.res,'Resultado',fmt(k.resultado),'Recebido menos despesas')}
-    ${kpi('red','<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>','Glosado',fmt(k.totalGlosado),'Valor glosado no período')}
     ${kpi('gold',ICOS.ticket,'Ticket Médio',fmt(k.ticketMedio),'Por atendimento particular')}
+    ${kpi('amber',ICOS.clock,'Guias Pendentes',k.qtdGuiasPendentes,'Aguardando pagamento')}
     ${kpi('purple',ICOS.target,'Meta Anual',pctMeta+'%','de R$ 1.200.000')}
+  </div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+    ${kpi('amber',ICOS.clock,'A Receber (Convênios)',fmt(k.totalAReceber),'Guias ainda não pagas')}
+    ${kpi('red',ICOS.desp,'Total Glosado',fmt(k.totalGlosado),'Valor não reconhecido pelo convênio')}
+    ${kpi('teal',ICOS.conv,'Total Recebido',fmt(k.totalRecebido),'Já confirmado em caixa')}
   </div>
   <div class="page-sections">
     <div class="panel"><div class="ph"><span class="pt">Evolução Mensal — Receita vs Despesa</span></div><div class="pb" id="chart-mensal"></div></div>
@@ -1133,7 +1187,8 @@ function buildDashAdmin(d,cont){
   <div class="page-sections">
     <div class="panel"><div class="ph"><span class="pt">Top 5 — Desempenho por Profissional</span><button class="btn btn-o btn-xs" onclick="goPage('desempenho')">Ver completo</button></div><div class="pb" id="mini-rk"></div></div>
     <div class="panel"><div class="ph"><span class="pt">Vencimentos Próximos</span></div><div id="vencer-wrap" style="padding:12px"></div></div>
-  </div>`;
+  </div>
+  <div class="panel" style="margin-top:16px"><div class="ph"><span class="pt">Status dos Lotes no Período</span><button class="btn btn-o btn-xs" onclick="goPage('faturamento')">Ver Faturamento</button></div><div class="pb" id="mini-lotes"></div></div>`;
   requestAnimationFrame(()=>{
     renderChartMensal(d.porMes,el('chart-mensal'));
     renderDonut(d.porConvenio);
@@ -1146,7 +1201,7 @@ function renderMiniRanking(){
   google.script.run.withSuccessHandler(res=>{
     if(!res.ok||!res.dados.length){w.innerHTML='<div style="font-size:.78rem;color:var(--text-3)">Sem dados no período.</div>';return;}
     const top=res.dados.slice(0,5), mx=top[0]?.valor_total||1;
-    w.innerHTML=top.map((p,i)=>`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:3px"><span><strong>${i+1}.</strong> ${san(p.nome)}</span><strong>${fmt(p.valor_total)}</strong></div><div class="prog-bar"><div class="prog-fill" style="width:${(p.valor_total/mx*100).toFixed(0)}%;background:${p.cor||CORES[i%CORES.length]}"></div></div><div style="font-size:.68rem;color:var(--text-3);margin-top:2px">Comissão: ${fmt(p.comissao_total||0)}${p.avisos_comissao&&p.avisos_comissao.length?' · <span style="color:var(--amber)">'+p.avisos_comissao.length+' aviso(s)</span>':''}</div></div>`).join('');
+    w.innerHTML=top.map((p,i)=>`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:3px"><span><strong>${i+1}.</strong> ${san(p.nome)}</span><strong>${fmt(p.valor_total)}</strong></div><div class="prog-bar"><div class="prog-fill" style="width:${(p.valor_total/mx*100).toFixed(0)}%;background:${p.cor||CORES[i%CORES.length]}"></div></div></div>`).join('');
   }).withFailureHandler(()=>{w.innerHTML='<div style="font-size:.78rem;color:var(--text-3)">Indisponível.</div>';}).getDesempenhoProfissionais({mes:el('filtro-mes').value},APP.user);
 }
 
@@ -1156,17 +1211,15 @@ function buildDashGestor(d,cont){
   const confHtml=conf.length>0?conf.slice(0,5).map(c=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:600;font-size:.8rem">${san(c.usuario)}</div><div style="font-size:.7rem;color:var(--text-3)">${c.data}</div></div><span class="bdg ${c.pct>=80?'bdg-green':c.pct>=50?'bdg-amber':'bdg-red'}">${c.pct}%</span></div>`).join(''):'<div style="font-size:.78rem;color:var(--text-3);padding:12px 0">Nenhum envio de checklist hoje.</div>';
   cont.innerHTML=`
   <div class="sdiv">${saudacao().replace(',','')} ${n1} — Painel Financeiro</div>
-  <div class="panel" style="margin-bottom:15px">
-    <div class="ph"><span class="pt"><svg class="pt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Alertas Financeiros</span></div>
-    <div class="pb">${buildAlertasFinanceiros(d)}</div>
-  </div>
   <div class="kpi-grid">
-    ${kpi('','<path d="M12 2v20M2 12h20"/>','Faturado Total',fmt(k.totalFaturado),'Convênios + Particular')}
-    ${kpi('green',ICOS.part,'Recebido Total',fmt(k.totalRecebido),'Já em caixa')}
-    ${kpi('amber',ICOS.clock,'A Receber',fmt(k.totalAReceber),k.qtdGuiasPendentes+' guia(s) pendente(s)')}
+    ${kpi('teal',ICOS.conv,'Convênios',fmt(k.recConvenio),'Faturado')}
+    ${kpi('green',ICOS.part,'Particular',fmt(k.recParticular),'Recebido')}
     ${kpi('red',ICOS.desp,'Despesas',fmt(k.totalDespesas),'Total')}
     ${kpi(k.resultado>=0?'green':'red',ICOS.res,'Resultado',fmt(k.resultado),'Recebido – Despesa')}
-    ${kpi('red','<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>','Glosado',fmt(k.totalGlosado),'No período')}
+    ${kpi('amber',ICOS.clock,'Guias Pendentes',k.qtdGuiasPendentes,'A receber')}
+    ${kpi('gold',ICOS.ticket,'Ticket Médio',fmt(k.ticketMedio),'Particular')}
+    ${kpi('red',ICOS.desp,'Total Glosado',fmt(k.totalGlosado),'Não reconhecido')}
+    ${kpi('teal',ICOS.target,'A Receber',fmt(k.totalAReceber),'Convênios pendentes')}
   </div>
   <div class="page-sections">
     <div class="panel"><div class="ph"><span class="pt">Entradas vs Saídas — Mensal</span></div><div class="pb" id="chart-mensal"></div></div>
@@ -1425,16 +1478,12 @@ function buildDesempenhoPage(res,cont){
   const top=d[0];
   const mediaTicket=d.filter(x=>x.qtd_particular>0).reduce((s,x)=>s+x.ticket_medio,0)/(d.filter(x=>x.qtd_particular>0).length||1);
   const totalAtend=d.reduce((s,x)=>s+x.qtd_particular+x.qtd_convenio,0);
-  const totalComissao=d.reduce((s,x)=>s+(x.comissao_total||0),0);
-  const totalAvisos=d.reduce((s,x)=>s+(x.avisos_comissao?x.avisos_comissao.length:0),0);
   const mx=top.valor_total||1;
 
-  let html=`<div class="page-hd"><div><h2>Desempenho da Equipe</h2><div class="page-hd-sub">Faturamento, comissão e comparecimento por profissional · período selecionado no topo</div></div></div>
-  ${totalAvisos>0?`<div class="alert alert-warn"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div>${totalAvisos} aviso(s) de comissão no período (ex.: profissional sem regra cadastrada em Regras_Comissao). Veja a coluna "Comissão" na tabela abaixo.</div></div>`:''}
-  <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr)">
+  let html=`<div class="page-hd"><div><h2>Desempenho da Equipe</h2><div class="page-hd-sub">Faturamento, ticket médio e comparecimento por profissional · período selecionado no topo</div></div></div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
     ${kpi('gold',ICOS.trofeu,'Top Profissional',san(top.nome.split(' ').slice(0,2).join(' ')),fmt(top.valor_total)+' faturados')}
     ${kpi('','<path d="M12 2v20M2 12h20"/>','Faturamento Total',fmt(res.totalGeral),totalAtend+' atendimentos')}
-    ${kpi('purple','<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>','Comissão Total',fmt(totalComissao),'A pagar à equipe')}
     ${kpi('teal',ICOS.ticket,'Ticket Médio Equipe',fmt(mediaTicket),'Média particular')}
     ${kpi('emerald',ICOS.target,'Profissionais Ativos',d.length,'Considerados no ranking')}
   </div>
@@ -1461,17 +1510,15 @@ function buildDesempenhoPage(res,cont){
   html+=`</div></div>
   <div class="panel">
     <div class="ph"><span class="pt">Detalhamento por Profissional</span></div>
-    <div class="tw"><table class="tbl"><thead><tr><th>Profissional</th><th>Particular</th><th>Convênio</th><th>Total</th><th>Comissão</th><th>Ticket Médio</th><th>Atendimentos</th><th>Comparecimento</th></tr></thead><tbody>`;
+    <div class="tw"><table class="tbl"><thead><tr><th>Profissional</th><th>Particular</th><th>Convênio</th><th>Total</th><th>Ticket Médio</th><th>Atendimentos</th><th>Comparecimento</th></tr></thead><tbody>`;
   d.forEach(p=>{
     const tc=p.taxa_comparecimento;
     const tcBdg = tc===null ? '<span class="bdg bdg-gray">Sem agenda</span>' : `<span class="bdg ${tc>=80?'bdg-green':tc>=50?'bdg-amber':'bdg-red'}">${tc}%</span>`;
-    const temAviso=p.avisos_comissao&&p.avisos_comissao.length;
     html+=`<tr>
       <td><strong>${san(p.nome)}</strong><div style="font-size:.68rem;color:var(--text-3)">${san(p.especialidade||'')}</div></td>
       <td>${fmt(p.valor_particular)} <span class="bdg bdg-gold" style="margin-left:3px">${p.qtd_particular}x</span></td>
       <td>${fmt(p.valor_convenio)} <span class="bdg bdg-teal" style="margin-left:3px">${p.qtd_convenio}x</span></td>
       <td style="font-weight:700">${fmt(p.valor_total)}</td>
-      <td style="font-weight:600;color:var(--purple)">${fmt(p.comissao_total||0)}${temAviso?` <span class="bdg bdg-amber" title="${san(p.avisos_comissao.join(' | '))}">!</span>`:''}</td>
       <td>${fmt(p.ticket_medio)}</td>
       <td>${p.qtd_atendimentos} <span style="color:var(--text-3);font-size:.7rem">(${p.faltou} faltas)</span></td>
       <td>${tcBdg}</td>
@@ -1602,6 +1649,34 @@ function popularDropsPart(){
   s('p-srv','<option value="">Selecione o serviço...</option>'+servicos.map(s=>`<option value="${s.id}" data-v="${s.valor}" data-n="${s.nome}">${s.nome} — ${fmt(s.valor)}</option>`).join(''));
   const d=el('p-data');if(d&&!d.value)d.value=today();
   renderPKPart();
+  carregarPrecosPacoteParaForm();
+  carregarTaxasCartaoParaForm();
+}
+
+// ================================================================
+//  PREÇOS POR PACOTE — cache em APP + auto-preenchimento do valor
+// ================================================================
+function carregarPrecosPacoteParaForm(){
+  google.script.run.withSuccessHandler(res=>{
+    APP.precosPacote = (res&&res.ok)?res.dados:{};
+  }).withFailureHandler(()=>{APP.precosPacote={};}).getPrecosPacote(APP.user);
+}
+function autoValPart(){
+  const s=el('p-srv'),o=s&&s.options[s.selectedIndex];
+  const tipo=el('p-tipo')?el('p-tipo').value:'';
+  const hint=el('p-tipo-hint');
+  const tabela=APP.precosPacote||{};
+  const srvId=s?s.value:'';
+  if(srvId && tabela[srvId] && tabela[srvId][tipo] !== undefined && tabela[srvId][tipo] !== ''){
+    el('p-val').value=tabela[srvId][tipo];
+    if(hint)hint.textContent='Preço da tabela configurada para este pacote.';
+  } else if(o&&o.dataset.v){
+    el('p-val').value=o.dataset.v;
+    if(hint)hint.textContent='Sem preço de pacote configurado — usando valor padrão do serviço.';
+  } else if(hint){
+    hint.textContent='';
+  }
+  calcRecibo();
 }
 function renderPKPart(){
   el('pk-part').innerHTML=`<div class="pk-step" id="pk1"><div class="pk-num">1</div><div class="pk-txt">Selecione o paciente — se for novo, escreva o nome no campo abaixo</div></div>
@@ -1609,23 +1684,88 @@ function renderPKPart(){
   <div class="pk-step" id="pk3"><div class="pk-num">3</div><div class="pk-txt">Selecione o serviço — o valor será preenchido automaticamente</div></div>
   <div class="pk-step" id="pk4"><div class="pk-num">4</div><div class="pk-txt">Confirme o valor, a forma de pagamento e clique em Salvar</div></div>`;
 }
-function autoValPart(){const s=el('p-srv'),o=s&&s.options[s.selectedIndex];if(o&&o.dataset.v)el('p-val').value=o.dataset.v;}
+
+// ================================================================
+//  TAXAS DE CARTÃO — cálculo de valor líquido em tempo real
+// ================================================================
+function carregarTaxasCartaoParaForm(){
+  google.script.run.withSuccessHandler(res=>{
+    APP.taxasCartao=(res&&res.ok)?res.dados:{};
+    const sel=el('p-maquininha');
+    if(!sel)return;
+    const nomes=Object.keys(APP.taxasCartao);
+    sel.innerHTML='<option value="">Selecione...</option>'+nomes.map(n=>`<option value="${san(n)}">${san(n)}</option>`).join('');
+    if(!nomes.length)sel.innerHTML='<option value="">Nenhuma maquininha configurada</option>';
+  }).withFailureHandler(()=>{APP.taxasCartao={};}).getTaxasCartao(APP.user);
+}
+function atualizarCamposPgto(){
+  const forma=el('p-forma').value;
+  const isCartao=(forma==='DÉBITO'||forma==='CRÉDITO');
+  el('p-cartao-wrap').style.display=isCartao?'block':'none';
+  el('p-parcelas-wrap').style.display=(forma==='CRÉDITO')?'flex':'none';
+  el('p-antecip-wrap').style.display=(forma==='CRÉDITO')?'flex':'none';
+  if(!isCartao)el('p-recibo').style.display='none';
+  calcRecibo();
+}
+function calcRecibo(){
+  const forma=el('p-forma')?el('p-forma').value:'';
+  const box=el('p-recibo');
+  if(!box)return;
+  if(forma!=='DÉBITO'&&forma!=='CRÉDITO'){box.style.display='none';return;}
+  const maquininha=el('p-maquininha').value;
+  const bruto=parseFloat(el('p-val').value||0);
+  if(!maquininha||!bruto){box.style.display='none';return;}
+  const cfg=(APP.taxasCartao||{})[maquininha];
+  if(!cfg){box.innerHTML='<div class="recibo-row"><span class="lbl">Configure as taxas desta maquininha em Config. Preços e Taxas.</span></div>';box.style.display='block';return;}
+  let pctTaxa=0, label='';
+  if(forma==='DÉBITO'){
+    pctTaxa=parseFloat(cfg.debito||0);
+    label='Débito';
+  } else {
+    const parc=parseInt(el('p-parcelas').value||1);
+    const antecipado=el('p-antecipado').value==='SIM';
+    pctTaxa=parseFloat((cfg.credito||{})[parc]||0);
+    if(antecipado)pctTaxa+=parseFloat(cfg.antecipacao||0);
+    label=`Crédito ${parc}x`+(antecipado?' (antecipado)':' (prazo normal)');
+  }
+  const taxaRs=bruto*(pctTaxa/100);
+  const liquido=bruto-taxaRs;
+  box.style.display='block';
+  box.innerHTML=`
+    <div class="recibo-row"><span class="lbl">Valor bruto</span><span class="val">${fmt(bruto)}</span></div>
+    <div class="recibo-row"><span class="lbl">${label} — taxa ${maquininha} (${pctTaxa.toFixed(2)}%)</span><span class="val" style="color:var(--red)">− ${fmt(taxaRs)}</span></div>
+    <div class="recibo-row total"><span class="lbl">Valor líquido a receber</span><span class="val">${fmt(liquido)}</span></div>`;
+  APP._reciboAtual={maquininha,pctTaxa,taxaRs,liquido,label};
+}
 function salvarParticular(){
   const data=el('p-data').value,selPac=el('p-pac'),novo=el('p-pac-novo').value.trim();
   const selProf=el('p-prof'),selSrv=el('p-srv'),val=el('p-val').value;
   if(!data||(!selPac.value&&!novo)||!selProf.value||!selSrv.value||!val||val<=0){toast('Preencha todos os campos obrigatórios.','err');return;}
-  const dados={data,paciente_id:selPac.value||'',paciente_nome:novo||selPac.options[selPac.selectedIndex]?.dataset?.n||'',profissional_id:selProf.value,profissional_nome:selProf.options[selProf.selectedIndex]?.dataset?.n||'',servico_id:selSrv.value,servico_nome:selSrv.options[selSrv.selectedIndex]?.dataset?.n||'',valor:parseFloat(val),forma_pgto:el('p-forma').value,quantidade:parseInt(el('p-qtd').value||1),tipo_qtd:el('p-tipo').value,observacao:san(el('p-obs').value)};
+  const forma=el('p-forma').value;
+  const isCartao=(forma==='DÉBITO'||forma==='CRÉDITO');
+  if(isCartao&&!el('p-maquininha').value){toast('Selecione a maquininha usada.','err');return;}
+  let obsExtra='';
+  let formaDetalhada=forma;
+  if(isCartao&&APP._reciboAtual){
+    const r=APP._reciboAtual;
+    formaDetalhada=forma==='CRÉDITO'?`CRÉDITO ${el('p-parcelas').value}x (${el('p-antecipado').value==='SIM'?'ANTECIPADO':'PRAZO NORMAL'})`:forma;
+    obsExtra=` | ${r.maquininha}, taxa ${r.pctTaxa.toFixed(2)}% (${fmt(r.taxaRs)}), líquido ${fmt(r.liquido)}`;
+  }
+  const dados={data,paciente_id:selPac.value||'',paciente_nome:novo||selPac.options[selPac.selectedIndex]?.dataset?.n||'',profissional_id:selProf.value,profissional_nome:selProf.options[selProf.selectedIndex]?.dataset?.n||'',servico_id:selSrv.value,servico_nome:selSrv.options[selSrv.selectedIndex]?.dataset?.n||'',valor:parseFloat(val),forma_pgto:formaDetalhada,quantidade:parseInt(el('p-qtd').value||1),tipo_qtd:el('p-tipo').value,observacao:san(el('p-obs').value)+obsExtra};
   const btn=event.target;btn.disabled=true;btn.textContent='Salvando...';
   google.script.run
     .withSuccessHandler(res=>{
       btn.disabled=false;btn.innerHTML='<svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Lançamento';
-      if(res.ok){toast('Lançamento salvo com sucesso!','ok');el('part-prev').style.display='block';el('part-prev-cont').innerHTML=`<table class="tbl"><tr><td>Paciente</td><td><strong>${san(dados.paciente_nome)}</strong></td></tr><tr><td>Profissional</td><td>${san(dados.profissional_nome)}</td></tr><tr><td>Serviço</td><td>${san(dados.servico_nome)}</td></tr><tr><td>Valor</td><td><strong style="color:var(--green)">${fmt(dados.valor)}</strong></td></tr><tr><td>Pagamento</td><td>${dados.forma_pgto}</td></tr></table>`;carregarNotifs();}
+      if(res.ok){
+        const liq=isCartao&&APP._reciboAtual?`<tr><td>Líquido (após taxa)</td><td><strong style="color:var(--teal)">${fmt(APP._reciboAtual.liquido)}</strong></td></tr>`:'';
+        toast('Lançamento salvo com sucesso!','ok');el('part-prev').style.display='block';el('part-prev-cont').innerHTML=`<table class="tbl"><tr><td>Paciente</td><td><strong>${san(dados.paciente_nome)}</strong></td></tr><tr><td>Profissional</td><td>${san(dados.profissional_nome)}</td></tr><tr><td>Serviço</td><td>${san(dados.servico_nome)}</td></tr><tr><td>Valor Bruto</td><td><strong style="color:var(--green)">${fmt(dados.valor)}</strong></td></tr>${liq}<tr><td>Pagamento</td><td>${san(formaDetalhada)}</td></tr></table>`;carregarNotifs();
+      }
       else toast('Erro: '+san(res.msg),'err');
     })
     .withFailureHandler(e=>{btn.disabled=false;btn.textContent='Salvar Lançamento';toast(e.message,'err');})
     .salvarParticular(dados,APP.user);
 }
-function limparPart(){['p-data','p-val','p-obs','p-pac-novo'].forEach(id=>{const e=el(id);if(e)e.value=id==='p-data'?today():'';});['p-pac','p-prof','p-srv'].forEach(id=>{const e=el(id);if(e)e.selectedIndex=0;});el('p-qtd').value=1;el('part-prev').style.display='none';}
+function limparPart(){['p-data','p-val','p-obs','p-pac-novo'].forEach(id=>{const e=el(id);if(e)e.value=id==='p-data'?today():'';});['p-pac','p-prof','p-srv','p-maquininha'].forEach(id=>{const e=el(id);if(e)e.selectedIndex=0;});el('p-qtd').value=1;el('part-prev').style.display='none';el('p-cartao-wrap').style.display='none';el('p-recibo').style.display='none';APP._reciboAtual=null;}
 function carregarParticulares(){
   const w=el('part-lista');if(!w)return;
   w.innerHTML='<div class="lw"><div class="spin"></div></div>';
@@ -1700,6 +1840,156 @@ function verItens(gid){google.script.run.withSuccessHandler(itens=>{const html=!
 // ================================================================
 //  A RECEBER
 // ================================================================
+// ================================================================
+//  TABS genérico — usado em Faturamento e Config Financeira
+// ================================================================
+function switchTab(pageId,tabId){
+  const page=el('page-'+pageId);
+  if(!page)return;
+  page.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tabId));
+  page.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active',p.id===tabId));
+}
+
+// ================================================================
+//  FATURAMENTO — resumo por convênio, conferência de prazos, regras
+// ================================================================
+function carregarFaturamento(){
+  const mes=el('filtro-mes').value;
+  el('fat-resumo-lw').style.display='flex';el('fat-resumo-cont').style.display='none';
+  google.script.run.withSuccessHandler(res=>{
+    el('fat-resumo-lw').style.display='none';el('fat-resumo-cont').style.display='block';
+    if(!res||!res.ok||!res.dados.length){el('fat-resumo-cont').innerHTML='<div class="alert alert-info">Nenhum dado de convênio no período.</div>';return;}
+    const tf=res.dados.reduce((s,r)=>s+r.faturado,0),tr=res.dados.reduce((s,r)=>s+r.recebido,0),tg=res.dados.reduce((s,r)=>s+r.glosado,0),tp=res.dados.reduce((s,r)=>s+r.pendente,0);
+    el('fat-resumo-cont').innerHTML=`
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+      ${kpi('teal',ICOS.conv,'Total Faturado',fmt(tf),'Todos os convênios')}
+      ${kpi('green',ICOS.res,'Total Recebido',fmt(tr),'Já confirmado')}
+      ${kpi('amber',ICOS.clock,'Pendente',fmt(tp),'Aguardando pagamento')}
+      ${kpi('red',ICOS.desp,'Glosado',fmt(tg),'Não reconhecido')}
+    </div>
+    <div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Convênio</th><th>Guias</th><th>Faturado</th><th>Recebido</th><th>Pendente</th><th>Glosado</th></tr></thead><tbody>
+      ${res.dados.map(r=>`<tr><td><strong>${san(r.convenio_nome)}</strong></td><td>${r.qtd_guias}</td><td>${fmt(r.faturado)}</td><td style="color:var(--green)">${fmt(r.recebido)}</td><td style="color:var(--amber)">${fmt(r.pendente)}</td><td style="color:var(--red)">${fmt(r.glosado)}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+  }).withFailureHandler(e=>{el('fat-resumo-lw').style.display='none';el('fat-resumo-cont').style.display='block';el('fat-resumo-cont').innerHTML='<div class="alert alert-err">Erro ao carregar resumo: '+san(e.message)+'</div>';}).getResumoPorConvenio({mes},APP.user);
+
+  el('fat-prazos-lw').style.display='flex';el('fat-prazos-cont').style.display='none';
+  google.script.run.withSuccessHandler(res=>{
+    el('fat-prazos-lw').style.display='none';el('fat-prazos-cont').style.display='block';
+    if(!res||!res.ok||!res.resultado.length){el('fat-prazos-cont').innerHTML='<div class="alert alert-info">Nenhuma guia pendente para conferir.</div>';return;}
+    const badge=c=>c==='NO PRAZO'?'bdg-green':c==='EM ATRASO'?'bdg-amber':'bdg-red';
+    el('fat-prazos-cont').innerHTML=`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Convênio</th><th>Valor</th><th>Prev.</th><th>Dias Atraso</th><th>Situação</th></tr></thead><tbody>
+      ${res.resultado.map(r=>`<tr><td><strong>${san(r.convenio_nome||'—')}</strong></td><td>${fmt(r.valor_total)}</td><td>${r.data_prevista||'—'}</td><td>${r.dias_atraso??'—'}</td><td><span class="bdg ${badge(r.conferencia)}">${r.conferencia}</span></td></tr>`).join('')}
+    </tbody></table></div></div>`;
+  }).withFailureHandler(e=>{el('fat-prazos-lw').style.display='none';el('fat-prazos-cont').style.display='block';el('fat-prazos-cont').innerHTML='<div class="alert alert-err">Erro: '+san(e.message)+'</div>';}).conferirPrazosRecebimento({mes},APP.user);
+
+  el('fat-regras-lw').style.display='flex';el('fat-regras-cont').style.display='none';
+  google.script.run.withSuccessHandler(res=>{
+    el('fat-regras-lw').style.display='none';el('fat-regras-cont').style.display='block';
+    if(!res||!res.length){el('fat-regras-cont').innerHTML='<div class="alert alert-info">Nenhuma regra de convênio cadastrada ainda.</div>';return;}
+    const tipoLbl={FIXO:'Dia fixo do mês',CONDICIONAL:'Corte no mês',ULTIMO_DIA_UTIL:'Último dia útil',IMEDIATO:'Imediato (particular)'};
+    el('fat-regras-cont').innerHTML=`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Convênio</th><th>Tipo Faturamento</th><th>Detalhe</th><th>Prazo Envio</th><th>Prazo Receb.</th><th>Atraso Freq.</th></tr></thead><tbody>
+      ${res.map(r=>`<tr><td><strong>${san(r.convenio_nome)}</strong></td><td>${tipoLbl[r.tipo_faturamento]||r.tipo_faturamento}</td><td>${r.tipo_faturamento==='FIXO'?'Dia '+r.dia_fixo:r.tipo_faturamento==='CONDICIONAL'?'Corte dia '+r.dia_corte:'—'}</td><td>${r.prazo_envio_dias_uteis||0} dias úteis</td><td>${r.prazo_recebimento_dias||0} dias corridos</td><td><span class="bdg ${r.atraso_frequente==='SIM'?'bdg-amber':'bdg-green'}">${r.atraso_frequente||'NÃO'}</span></td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="pb"><div class="alert alert-info" style="margin:0"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Para editar uma regra, ajuste diretamente na aba "Regras_Convenio" da planilha — o sistema lê de lá automaticamente.</div></div></div></div>`;
+  }).withFailureHandler(e=>{el('fat-regras-lw').style.display='none';el('fat-regras-cont').style.display='block';el('fat-regras-cont').innerHTML='<div class="alert alert-err">Erro: '+san(e.message)+'</div>';}).getRegrasConvenio(APP.user);
+}
+
+// ================================================================
+//  CONFIG FINANCEIRA — tabela de preços por pacote + taxas de cartão
+// ================================================================
+const PACOTES_PADRAO=[
+  {id:'1 SESSÃO',label:'1 Sessão'},{id:'AVALIAÇÃO',label:'Avaliação Inicial'},
+  {id:'CONSULTA',label:'Consulta'},{id:'5 SESSÕES',label:'Pacote 5 Sessões'},
+  {id:'10 SESSÕES',label:'Pacote 10 Sessões'},{id:'DOMICILIAR',label:'Home Care / Domiciliar'}
+];
+function carregarConfigFinanceira(){
+  carregarTabelaPrecos();
+  carregarTabelaTaxas();
+}
+function carregarTabelaPrecos(){
+  const tbl=el('cf-precos-tbl');
+  if(!APP.listas||!APP.listas.servicos){setTimeout(carregarTabelaPrecos,400);return;}
+  google.script.run.withSuccessHandler(res=>{
+    const precos=(res&&res.ok)?res.dados:{};
+    const servicos=APP.listas.servicos;
+    tbl.innerHTML=`<thead><tr><th>Serviço</th>${PACOTES_PADRAO.map(p=>`<th>${p.label}</th>`).join('')}</tr></thead>
+    <tbody>${servicos.map(s=>`<tr><td><strong>${san(s.nome)}</strong></td>${PACOTES_PADRAO.map(p=>`<td><input type="number" class="price-input" data-srv="${s.id}" data-pac="${p.id}" step="0.01" min="0" value="${(precos[s.id]&&precos[s.id][p.id]!==undefined)?precos[s.id][p.id]:''}" placeholder="${s.valor||'0,00'}"></td>`).join('')}</tr>`).join('')}</tbody>`;
+  }).withFailureHandler(e=>{tbl.innerHTML=`<tr><td>Erro ao carregar: ${san(e.message)}</td></tr>`;}).getPrecosPacote(APP.user);
+}
+function salvarPrecosPacote(){
+  const inputs=document.querySelectorAll('#cf-precos-tbl .price-input');
+  const precos={};
+  inputs.forEach(inp=>{
+    const srv=inp.dataset.srv,pac=inp.dataset.pac,val=inp.value;
+    if(val===''||val===null)return;
+    if(!precos[srv])precos[srv]={};
+    precos[srv][pac]=parseFloat(val);
+  });
+  const btn=event.target;btn.disabled=true;btn.textContent='Salvando...';
+  google.script.run.withSuccessHandler(res=>{
+    btn.disabled=false;btn.innerHTML='<svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Tabela de Preços';
+    if(res.ok){toast('Tabela de preços salva!','ok');carregarPrecosPacoteParaForm();}else toast('Erro: '+san(res.msg),'err');
+  }).withFailureHandler(e=>{btn.disabled=false;btn.textContent='Salvar Tabela de Preços';toast(e.message,'err');}).salvarPrecosPacote(precos,APP.user);
+}
+function carregarTabelaTaxas(){
+  const cont=el('cf-taxas-cont');
+  google.script.run.withSuccessHandler(res=>{
+    const taxas=(res&&res.ok)?res.dados:{};
+    const nomes=Object.keys(taxas).length?Object.keys(taxas):['Maquininha 1','Maquininha 2'];
+    cont.innerHTML=nomes.map(nome=>{
+      const cfg=taxas[nome]||{debito:0,credito:{},antecipacao:0};
+      const parcRows=Array.from({length:12},(_,i)=>i+1).map(p=>`
+        <tr><td>${p}x</td><td><input type="number" class="fee-credito" data-maq="${san(nome)}" data-parc="${p}" step="0.01" min="0" value="${cfg.credito&&cfg.credito[p]!==undefined?cfg.credito[p]:''}" placeholder="0,00"> %</td></tr>`).join('');
+      return `<div class="fee-card">
+        <div class="fee-card-hd"><h4><input type="text" class="fee-nome" value="${san(nome)}" style="border:none;background:none;font-family:var(--fd);font-size:.86rem;font-weight:700;width:160px" data-orig="${san(nome)}"></h4>
+        <button class="btn btn-d btn-xs" onclick="this.closest('.fee-card').remove()">Remover</button></div>
+        <div class="fg fg2" style="margin-bottom:12px">
+          <div class="ff"><label>Taxa Débito (%)</label><input type="number" class="fee-debito" data-maq="${san(nome)}" step="0.01" min="0" value="${cfg.debito||''}" placeholder="0,00"></div>
+          <div class="ff"><label>Taxa Extra de Antecipação (%) <span class="hint">(crédito parcelado)</span></label><input type="number" class="fee-antecip" data-maq="${san(nome)}" step="0.01" min="0" value="${cfg.antecipacao||''}" placeholder="0,00"></div>
+        </div>
+        <div style="font-size:.7rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Taxa de Crédito por Parcela (%)</div>
+        <div class="tw"><table class="fee-tbl"><tbody>${parcRows}</tbody></table></div>
+      </div>`;
+    }).join('')+`<button class="btn btn-o btn-sm" onclick="adicionarMaquininha()"><svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Adicionar Maquininha</button>`;
+  }).withFailureHandler(e=>{cont.innerHTML='<div class="alert alert-err">Erro: '+san(e.message)+'</div>';}).getTaxasCartao(APP.user);
+}
+function adicionarMaquininha(){
+  const nome=prompt('Nome da maquininha (ex: InfinitePay, Stone, Cielo):');
+  if(!nome)return;
+  const cont=el('cf-taxas-cont');
+  const div=document.createElement('div');
+  div.className='fee-card';
+  const parcRows=Array.from({length:12},(_,i)=>i+1).map(p=>`<tr><td>${p}x</td><td><input type="number" class="fee-credito" data-maq="${san(nome)}" data-parc="${p}" step="0.01" min="0" placeholder="0,00"> %</td></tr>`).join('');
+  div.innerHTML=`<div class="fee-card-hd"><h4><input type="text" class="fee-nome" value="${san(nome)}" style="border:none;background:none;font-family:var(--fd);font-size:.86rem;font-weight:700;width:160px" data-orig="${san(nome)}"></h4>
+    <button class="btn btn-d btn-xs" onclick="this.closest('.fee-card').remove()">Remover</button></div>
+    <div class="fg fg2" style="margin-bottom:12px">
+      <div class="ff"><label>Taxa Débito (%)</label><input type="number" class="fee-debito" data-maq="${san(nome)}" step="0.01" min="0" placeholder="0,00"></div>
+      <div class="ff"><label>Taxa Extra de Antecipação (%) <span class="hint">(crédito parcelado)</span></label><input type="number" class="fee-antecip" data-maq="${san(nome)}" step="0.01" min="0" placeholder="0,00"></div>
+    </div>
+    <div style="font-size:.7rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Taxa de Crédito por Parcela (%)</div>
+    <div class="tw"><table class="fee-tbl"><tbody>${parcRows}</tbody></table></div>`;
+  cont.insertBefore(div,cont.lastElementChild);
+}
+function salvarTaxasCartao(){
+  const cards=document.querySelectorAll('#cf-taxas-cont .fee-card');
+  const taxas={};
+  cards.forEach(card=>{
+    const nomeInput=card.querySelector('.fee-nome');
+    const nome=nomeInput.value.trim();
+    if(!nome)return;
+    const debito=parseFloat(card.querySelector('.fee-debito').value||0);
+    const antecipacao=parseFloat(card.querySelector('.fee-antecip').value||0);
+    const credito={};
+    card.querySelectorAll('.fee-credito').forEach(inp=>{if(inp.value!=='')credito[inp.dataset.parc]=parseFloat(inp.value);});
+    taxas[nome]={debito,antecipacao,credito};
+  });
+  const btn=event.target;btn.disabled=true;btn.textContent='Salvando...';
+  google.script.run.withSuccessHandler(res=>{
+    btn.disabled=false;btn.innerHTML='<svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Taxas';
+    if(res.ok){toast('Taxas salvas!','ok');carregarTaxasCartaoParaForm();}else toast('Erro: '+san(res.msg),'err');
+  }).withFailureHandler(e=>{btn.disabled=false;btn.textContent='Salvar Taxas';toast(e.message,'err');}).salvarTaxasCartao(taxas,APP.user);
+}
+
 function carregarAReceber(){
   el('ar-lw').style.display='flex';el('ar-lista').style.display='none';
   google.script.run.withSuccessHandler(renderAR).withFailureHandler(e=>toast(e.message,'err')).getGuias({mes:el('filtro-mes').value});
@@ -1775,266 +2065,6 @@ function carregarFluxo(){
     const tres=rows.reduce((s,r)=>s+r.res,0);
     w.innerHTML=`<div class="panel"><div class="ph"><span class="pt">Fluxo de Caixa — 2026</span></div><div class="alert alert-blue" style="margin:14px"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><div>Convênios pagam com 30–90 dias de atraso. Atualize o status das guias para refletir o caixa real.</div></div><div class="tw"><table class="tbl"><thead><tr><th>Mês</th><th>+ Particular</th><th>+ Convênios</th><th>= Receitas</th><th>– Despesas</th><th>Resultado</th><th>Acumulado</th></tr></thead><tbody>${rows.map(r=>`<tr><td><strong>${r.m}</strong></td><td style="color:var(--amber)">${r.p?fmt(r.p):'—'}</td><td style="color:var(--teal)">${r.c?fmt(r.c):'—'}</td><td style="font-weight:600">${r.t?fmt(r.t):'—'}</td><td style="color:var(--red)">${r.d?fmt(r.d):'—'}</td><td style="font-weight:700;color:${r.has?(r.res>=0?'var(--green)':'var(--red)'):'var(--text-3)'}">${r.has?fmt(r.res):'—'}</td><td style="font-weight:600">${r.ac?fmt(r.ac):'—'}</td></tr>`).join('')}</tbody><tfoot><tr><td><strong>TOTAL</strong></td><td><strong>${fmt(rows.reduce((s,r)=>s+r.p,0))}</strong></td><td><strong>${fmt(rows.reduce((s,r)=>s+r.c,0))}</strong></td><td><strong>${fmt(rows.reduce((s,r)=>s+r.t,0))}</strong></td><td><strong>${fmt(rows.reduce((s,r)=>s+r.d,0))}</strong></td><td style="color:${tres>=0?'var(--green)':'var(--red)'}"><strong>${fmt(tres)}</strong></td><td></td></tr></tfoot></table></div></div>`;
   });
-}
-
-// ================================================================
-//  LOTES / PROTOCOLOS
-// ================================================================
-const STATUS_LOTE_BDG = {Aberto:'bdg-gray',Enviado:'bdg-amber','Protocolado':'bdg-teal','Pago Parcial':'bdg-amber','Pago Total':'bdg-green',Glosado:'bdg-red'};
-function carregarLotes(){
-  const cont=el('page-lotes');
-  cont.innerHTML='<div class="lw"><div class="spin"></div><div class="lw-t">Carregando lotes...</div></div>';
-  google.script.run.withSuccessHandler(rows=>{
-    cont.innerHTML=`<div class="page-hd"><div><h2>Lotes / Protocolos</h2><div class="page-hd-sub">Acompanhamento do envio de lotes aos convênios até o recebimento</div></div><button class="btn btn-p btn-sm" onclick="modalNovoLote()">Novo Lote</button></div>
-    ${!rows||!rows.length?'<div class="alert alert-info">Nenhum lote cadastrado ainda.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Lote</th><th>Convênio</th><th>Fechamento</th><th>Envio</th><th>Prev. Receb.</th><th>Valor Total</th><th>Recebido</th><th>Glosado</th><th>Status</th><th></th></tr></thead><tbody>${rows.map(l=>`<tr>
-      <td><strong>${san(l.lote)}</strong></td><td>${san(l.convenio_nome)}</td><td>${l.data_fechamento||'—'}</td><td>${l.data_envio||'—'}</td><td>${l.data_prev_recebimento||'—'}</td>
-      <td style="font-weight:600">${fmt(l.valor_total_lote)}</td><td style="color:var(--green)">${fmt(l.valor_recebido)}</td><td style="color:var(--red)">${fmt(l.valor_glosado)}</td>
-      <td><span class="bdg ${STATUS_LOTE_BDG[l.status]||'bdg-gray'}">${san(l.status)}</span></td>
-      <td><button class="btn btn-g btn-xs" onclick="modalStatusLote('${l.id}','${san(l.status)}')">Atualizar</button></td>
-    </tr>`).join('')}</tbody></table></div></div>`}`;
-  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).getLotes({},APP.user);
-}
-function modalNovoLote(){
-  const opts=(APP.listas?.convenios||[]).map(c=>`<option value="${c.id}" data-n="${san(c.nome)}">${san(c.nome)}</option>`).join('');
-  abrirModal('Novo Lote',`<div class="fg fg2">
-    <div class="ff"><label>Convênio <span class="req">*</span></label><select id="lt-conv"><option value="">Selecione...</option>${opts}</select></div>
-    <div class="ff"><label>Nº do Lote</label><input type="text" id="lt-num" placeholder="ex: 99"></div>
-    <div class="ff"><label>Data de Fechamento</label><input type="date" id="lt-fecha" value="${today()}"></div>
-    <div class="ff"><label>Data de Envio</label><input type="date" id="lt-envio"></div>
-    <div class="ff"><label>Prev. Recebimento</label><input type="date" id="lt-prev"></div>
-    <div class="ff"><label>Observação</label><input type="text" id="lt-obs"></div>
-  </div>`,`<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="salvarNovoLote()">Criar Lote</button>`);
-}
-function salvarNovoLote(){
-  const cs=el('lt-conv');
-  if(!cs.value){toast('Selecione o convênio.','err');return;}
-  const dados={convenio_id:cs.value,convenio_nome:cs.options[cs.selectedIndex]?.dataset?.n||'',lote:el('lt-num').value,data_fechamento:el('lt-fecha').value,data_envio:el('lt-envio').value,data_prev_recebimento:el('lt-prev').value,observacao:san(el('lt-obs').value)};
-  google.script.run.withSuccessHandler(res=>{fecharModal();if(res.ok){toast('Lote criado!','ok');carregarLotes();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>toast(e.message,'err')).criarLote(dados,APP.user);
-}
-function modalStatusLote(id,statusAtual){
-  const opts=['Aberto','Enviado','Protocolado','Pago Parcial','Pago Total','Glosado'].map(s=>`<option value="${s}" ${s===statusAtual?'selected':''}>${s}</option>`).join('');
-  abrirModal('Atualizar Status do Lote',`<div class="fg fg2">
-    <div class="ff"><label>Status</label><select id="lt-st">${opts}</select></div>
-    <div class="ff"><label>Valor Recebido (R$)</label><input type="number" id="lt-vr" step="0.01" min="0"></div>
-    <div class="ff"><label>Valor Glosado (R$)</label><input type="number" id="lt-vg" step="0.01" min="0"></div>
-  </div>`,`<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="confirmarStatusLote('${id}')">Salvar</button>`);
-}
-function confirmarStatusLote(id){
-  const st=el('lt-st').value,vr=parseFloat(el('lt-vr').value||0),vg=parseFloat(el('lt-vg').value||0);
-  google.script.run.withSuccessHandler(res=>{fecharModal();if(res.ok){toast('Status do lote atualizado!','ok');carregarLotes();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>toast(e.message,'err')).atualizarStatusLote(id,st,vr,vg,APP.user);
-}
-
-// ================================================================
-//  GLOSAS
-// ================================================================
-function carregarGlosas(){
-  const cont=el('page-glosas');
-  cont.innerHTML='<div class="lw"><div class="spin"></div><div class="lw-t">Carregando glosas...</div></div>';
-  google.script.run.withSuccessHandler(rows=>{
-    const tot=(rows||[]).reduce((s,g)=>s+parseFloat(g.valor_glosado||0),0);
-    const abertas=(rows||[]).filter(g=>g.status==='Aberta').length;
-    cont.innerHTML=`<div class="page-hd"><div><h2>Glosas</h2><div class="page-hd-sub">Registro e acompanhamento de valores glosados por convênio</div></div><button class="btn btn-p btn-sm" onclick="modalNovaGlosa()">Registrar Glosa</button></div>
-    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
-      ${kpi('red','<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>','Total Glosado',fmt(tot),(rows||[]).length+' registro(s)')}
-      ${kpi('amber',ICOS.clock,'Glosas Abertas',abertas,'Aguardando recurso')}
-      ${kpi('green','<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>','Revertidas',(rows||[]).filter(g=>g.status==='Revertida').length,'Recurso aceito')}
-    </div>
-    ${!rows||!rows.length?'<div class="alert alert-info">Nenhuma glosa registrada.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Guia</th><th>Convênio</th><th>Data</th><th>Valor</th><th>Motivo</th><th>Status</th><th></th></tr></thead><tbody>${rows.map(g=>`<tr>
-      <td><code>${g.guia_id}</code></td><td><strong>${san(g.convenio_nome)}</strong></td><td>${g.data_glosa||'—'}</td>
-      <td style="font-weight:600;color:var(--red)">${fmt(g.valor_glosado)}</td><td>${san(g.motivo)}</td>
-      <td><span class="bdg ${g.status==='Revertida'?'bdg-green':g.status==='Mantida'?'bdg-red':g.status==='Recorrida'?'bdg-teal':'bdg-amber'}">${san(g.status)}</span></td>
-      <td><button class="btn btn-g btn-xs" onclick="modalStatusGlosa('${g.id}','${san(g.status)}')">Atualizar</button></td>
-    </tr>`).join('')}</tbody></table></div></div>`}`;
-  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).getGlosas({},APP.user);
-}
-function modalNovaGlosa(){
-  abrirModal('Registrar Glosa',`<div class="fg fg2">
-    <div class="ff"><label>ID da Guia <span class="req">*</span></label><input type="text" id="gl-guia" placeholder="ex: GUIA1234567890"></div>
-    <div class="ff"><label>Convênio</label><input type="text" id="gl-conv" placeholder="Nome do convênio"></div>
-    <div class="ff"><label>Data da Glosa</label><input type="date" id="gl-data" value="${today()}"></div>
-    <div class="ff"><label>Valor Glosado (R$) <span class="req">*</span></label><input type="number" id="gl-val" step="0.01" min="0"></div>
-    <div class="ff" style="grid-column:1/-1"><label>Motivo <span class="req">*</span></label><input type="text" id="gl-mot" placeholder="ex: Divergência de código"></div>
-  </div>`,`<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="salvarNovaGlosa()">Registrar</button>`);
-}
-function salvarNovaGlosa(){
-  const dados={guia_id:san(el('gl-guia').value),convenio_nome:san(el('gl-conv').value),data_glosa:el('gl-data').value,valor_glosado:el('gl-val').value,motivo:san(el('gl-mot').value)};
-  if(!dados.guia_id||!dados.valor_glosado||!dados.motivo){toast('Preencha guia, valor e motivo.','err');return;}
-  google.script.run.withSuccessHandler(res=>{fecharModal();if(res.ok){toast('Glosa registrada!','ok');carregarGlosas();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>toast(e.message,'err')).salvarGlosa(dados,APP.user);
-}
-function modalStatusGlosa(id,statusAtual){
-  const opts=['Aberta','Recorrida','Mantida','Revertida'].map(s=>`<option value="${s}" ${s===statusAtual?'selected':''}>${s}</option>`).join('');
-  abrirModal('Atualizar Status da Glosa',`<div class="ff"><label>Status</label><select id="gl-st">${opts}</select></div>`,
-  `<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="confirmarStatusGlosa('${id}')">Salvar</button>`);
-}
-function confirmarStatusGlosa(id){
-  google.script.run.withSuccessHandler(res=>{fecharModal();if(res.ok){toast('Status atualizado!','ok');carregarGlosas();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>toast(e.message,'err')).atualizarStatusGlosa(id,el('gl-st').value,APP.user);
-}
-
-// ================================================================
-//  CONFERÊNCIA DE PRAZOS
-// ================================================================
-function carregarConferencia(){
-  const cont=el('page-conferencia');
-  cont.innerHTML='<div class="lw"><div class="spin"></div><div class="lw-t">Conferindo prazos...</div></div>';
-  google.script.run.withSuccessHandler(res=>{
-    if(!res.ok){cont.innerHTML=`<div class="alert alert-err">${san(res.msg||'Erro ao carregar.')}</div>`;return;}
-    const rows=res.resultado||[];
-    const critico=rows.filter(r=>r.conferencia==='EM ATRASO CRÍTICO').length;
-    const atraso=rows.filter(r=>r.conferencia==='EM ATRASO').length;
-    cont.innerHTML=`<div class="page-hd"><div><h2>Conferência de Prazos de Recebimento</h2><div class="page-hd-sub">Compara o previsto com o real, aplicando tolerância para convênios historicamente lentos</div></div></div>
-    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
-      ${kpi('red',ICOS.clock,'Atraso Crítico',critico,'Fora da tolerância')}
-      ${kpi('amber',ICOS.clock,'Em Atraso',atraso,'Dentro do limite de atenção')}
-      ${kpi('teal',ICOS.conv,'Guias Conferidas',rows.length,'No total')}
-    </div>
-    ${!rows.length?'<div class="alert alert-info">Nenhuma guia pendente de conferência.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Guia</th><th>Convênio</th><th>Valor</th><th>Data Prevista</th><th>Dias em Atraso</th><th>Situação</th></tr></thead><tbody>${rows.map(r=>{
-      if(typeof r==='string'||!r.conferencia)return'';
-      const cls=r.conferencia==='EM ATRASO CRÍTICO'?'bdg-red':r.conferencia==='EM ATRASO'?'bdg-amber':'bdg-green';
-      return`<tr><td><code>${r.guia_id}</code></td><td><strong>${san(r.convenio_nome)}</strong></td><td>${fmt(r.valor_total)}</td><td>${r.data_prevista}</td><td>${r.dias_atraso}d</td><td><span class="bdg ${cls}">${r.conferencia}</span></td></tr>`;
-    }).join('')}</tbody></table></div></div>`}`;
-  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).conferirPrazosRecebimento({mes:el('filtro-mes').value},APP.user);
-}
-
-// ================================================================
-//  PROJEÇÃO DE RECEBIMENTOS
-// ================================================================
-function carregarProjecao(){
-  const cont=el('page-projecao');
-  cont.innerHTML='<div class="lw"><div class="spin"></div><div class="lw-t">Calculando projeção...</div></div>';
-  google.script.run.withSuccessHandler(res=>{
-    if(!res.ok){cont.innerHTML=`<div class="alert alert-err">${san(res.msg||'Erro ao carregar.')}</div>`;return;}
-    const rows=res.projecao||[];
-    cont.innerHTML=`<div class="page-hd"><div><h2>Projeção de Recebimentos</h2><div class="page-hd-sub">Guias ainda não pagas, ordenadas pelo prazo previsto de recebimento</div></div></div>
-    <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr)">
-      ${kpi('teal',ICOS.money,'Total Projetado',fmt(res.totalProjetado),rows.length+' guia(s)')}
-      ${kpi('red',ICOS.clock,'Total Atrasado',fmt(res.totalAtrasado),'Já fora do prazo previsto')}
-    </div>
-    ${!rows.length?'<div class="alert alert-info">Nenhuma guia pendente.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Guia</th><th>Convênio</th><th>Paciente</th><th>Valor</th><th>Prev.</th><th>Situação</th></tr></thead><tbody>${rows.map(p=>{
-      const cls=p.situacao==='ATRASADO'?'bdg-red':p.situacao==='PRÓXIMO'?'bdg-amber':p.situacao==='NO PRAZO'?'bdg-green':'bdg-gray';
-      return`<tr><td><code>${p.guia_id}</code></td><td><strong>${san(p.convenio_nome)}</strong></td><td>${san(p.paciente_nome)}</td><td style="font-weight:600">${fmt(p.valor_total)}</td><td>${p.data_prevista}</td><td><span class="bdg ${cls}">${p.situacao}${p.dias_restantes!==null?' ('+p.dias_restantes+'d)':''}</span></td></tr>`;
-    }).join('')}</tbody></table></div></div>`}`;
-  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).getProjecaoRecebimentos({mes:el('filtro-mes').value},APP.user);
-}
-
-// ================================================================
-//  REGRAS DE CONVÊNIO
-// ================================================================
-const TIPOS_FAT_LBL = {FIXO:'Dia Fixo do Mês',CONDICIONAL:'Condicional (dia de corte)',ULTIMO_DIA_UTIL:'Último Dia Útil',IMEDIATO:'Imediato'};
-function carregarRegrasConvenio(){
-  const cont=el('page-regras-convenio');
-  cont.innerHTML='<div class="lw"><div class="spin"></div></div>';
-  google.script.run.withSuccessHandler(rows=>{
-    cont.innerHTML=`<div class="page-hd"><div><h2>Regras de Faturamento por Convênio</h2><div class="page-hd-sub">Define como cada convênio fatura, quando o lote é enviado e o prazo até o recebimento</div></div></div>
-    <div class="alert alert-blue"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><div>Editar aqui muda automaticamente o cálculo de datas de novas guias — não afeta guias já lançadas.</div></div>
-    ${!rows||!rows.length?'<div class="alert alert-info">Nenhuma regra cadastrada. Rode migrarV6() na planilha para popular a partir dos convênios existentes.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Convênio</th><th>Tipo</th><th>Dia Fixo</th><th>Dia Corte</th><th>Envio (d.u.)</th><th>Receb. (dias)</th><th>Atraso Freq.</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr>
-      <td><strong>${san(r.convenio_nome)}</strong></td><td>${TIPOS_FAT_LBL[r.tipo_faturamento]||r.tipo_faturamento||'<span class="bdg bdg-amber">Não configurado</span>'}</td>
-      <td>${r.dia_fixo||'—'}</td><td>${r.dia_corte||'—'}</td><td>${r.prazo_envio_dias_uteis||0}</td><td>${r.prazo_recebimento_dias||0}</td>
-      <td>${r.atraso_frequente==='SIM'?'<span class="bdg bdg-amber">Sim</span>':'Não'}</td>
-      <td><button class="btn btn-g btn-xs" onclick='modalEditarRegraConvenio(${JSON.stringify(r).replace(/'/g,"&apos;")})'>Editar</button></td>
-    </tr>`).join('')}</tbody></table></div></div>`}`;
-  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).getRegrasConvenio(APP.user);
-}
-function modalEditarRegraConvenio(r){
-  abrirModal(`Editar Regra — ${san(r.convenio_nome)}`,`<div class="fg fg2">
-    <input type="hidden" id="rc-id" value="${r.convenio_id}"><input type="hidden" id="rc-nome" value="${san(r.convenio_nome)}">
-    <div class="ff"><label>Tipo de Faturamento</label><select id="rc-tipo">
-      <option value="FIXO" ${r.tipo_faturamento==='FIXO'?'selected':''}>Dia Fixo do Mês</option>
-      <option value="CONDICIONAL" ${r.tipo_faturamento==='CONDICIONAL'?'selected':''}>Condicional (dia de corte)</option>
-      <option value="ULTIMO_DIA_UTIL" ${r.tipo_faturamento==='ULTIMO_DIA_UTIL'?'selected':''}>Último Dia Útil</option>
-      <option value="IMEDIATO" ${r.tipo_faturamento==='IMEDIATO'?'selected':''}>Imediato</option>
-    </select></div>
-    <div class="ff"><label>Dia Fixo (1-31)</label><input type="number" id="rc-diafixo" min="1" max="31" value="${r.dia_fixo||''}"></div>
-    <div class="ff"><label>Dia de Corte</label><input type="number" id="rc-diacorte" min="1" max="31" value="${r.dia_corte||''}"></div>
-    <div class="ff"><label>Prazo de Envio (dias úteis)</label><input type="number" id="rc-envio" min="0" value="${r.prazo_envio_dias_uteis||0}"></div>
-    <div class="ff"><label>Prazo de Recebimento (dias corridos)</label><input type="number" id="rc-receb" min="0" value="${r.prazo_recebimento_dias||0}"></div>
-    <div class="ff"><label>Atraso Frequente?</label><select id="rc-atraso"><option value="NÃO" ${r.atraso_frequente!=='SIM'?'selected':''}>Não</option><option value="SIM" ${r.atraso_frequente==='SIM'?'selected':''}>Sim</option></select></div>
-    <div class="ff" style="grid-column:1/-1"><label>Observação</label><input type="text" id="rc-obs" value="${san(r.observacao||'')}"></div>
-  </div>`,`<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="salvarEdicaoRegraConvenio()">Salvar</button>`);
-}
-function salvarEdicaoRegraConvenio(){
-  const dados={convenio_id:el('rc-id').value,convenio_nome:el('rc-nome').value,tipo_faturamento:el('rc-tipo').value,dia_fixo:el('rc-diafixo').value,dia_corte:el('rc-diacorte').value,prazo_envio_dias_uteis:el('rc-envio').value,prazo_recebimento_dias:el('rc-receb').value,atraso_frequente:el('rc-atraso').value,ativo:'SIM',observacao:san(el('rc-obs').value)};
-  google.script.run.withSuccessHandler(res=>{fecharModal();if(res.ok){toast('Regra atualizada!','ok');carregarRegrasConvenio();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>toast(e.message,'err')).salvarRegraConvenio(dados,APP.user);
-}
-
-// ================================================================
-//  REGRAS DE COMISSÃO
-// ================================================================
-function carregarRegrasComissao(){
-  const cont=el('page-regras-comissao');
-  cont.innerHTML='<div class="lw"><div class="spin"></div></div>';
-  google.script.run.withSuccessHandler(rows=>{
-    const semRegra=(rows||[]).filter(r=>parseFloat(r.percentual_a||0)===0&&r.tipo_remuneracao!=='FIXO');
-    cont.innerHTML=`<div class="page-hd"><div><h2>Regras de Comissão por Profissional</h2><div class="page-hd-sub">Percentual ou valor fixo pago a cada profissional, por categoria de serviço</div></div></div>
-    ${semRegra.length?`<div class="alert alert-warn"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div>${semRegra.length} profissional(is) com comissão em 0% — configure antes de fechar o próximo faturamento.</div></div>`:''}
-    ${!rows||!rows.length?'<div class="alert alert-info">Nenhuma regra cadastrada.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Profissional</th><th>Vínculo</th><th>Remuneração</th><th>Categoria A</th><th>% / R$ A</th><th>Categoria B</th><th>% / R$ B</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr>
-      <td><strong>${san(r.profissional_nome)}</strong></td><td><span class="bdg bdg-blue">${r.tipo_vinculo}</span></td>
-      <td>${r.tipo_remuneracao==='FIXO'?'Fixo '+fmt(r.valor_fixo_mensal):'Variável'}</td>
-      <td>${san(r.categoria_a_nome||'Todos')}</td><td>${r.percentual_a}${r.unidade_a==='R$'?' R$':'%'}</td>
-      <td>${san(r.categoria_b_nome||'—')}</td><td>${r.categoria_b_nome?r.percentual_b+(r.unidade_b==='R$'?' R$':'%'):'—'}</td>
-      <td><button class="btn btn-g btn-xs" onclick='modalEditarRegraComissao(${JSON.stringify(r).replace(/'/g,"&apos;")})'>Editar</button></td>
-    </tr>`).join('')}</tbody></table></div></div>`}`;
-  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).getRegrasComissao(APP.user);
-}
-function modalEditarRegraComissao(r){
-  abrirModal(`Editar Comissão — ${san(r.profissional_nome)}`,`<div class="fg fg2">
-    <input type="hidden" id="rco-id" value="${r.profissional_id}"><input type="hidden" id="rco-nome" value="${san(r.profissional_nome)}">
-    <div class="ff"><label>Tipo de Vínculo</label><select id="rco-vinc"><option value="PJ" ${r.tipo_vinculo==='PJ'?'selected':''}>PJ</option><option value="CLT" ${r.tipo_vinculo==='CLT'?'selected':''}>CLT</option></select></div>
-    <div class="ff"><label>Remuneração</label><select id="rco-remun"><option value="VARIAVEL" ${r.tipo_remuneracao==='VARIAVEL'?'selected':''}>Variável</option><option value="FIXO" ${r.tipo_remuneracao==='FIXO'?'selected':''}>Fixo</option></select></div>
-    <div class="ff"><label>Valor Fixo Mensal (R$)</label><input type="number" id="rco-fixo" step="0.01" min="0" value="${r.valor_fixo_mensal||0}"></div>
-    <div class="ff"><label>Fixo também recebe % por guia?</label><select id="rco-fixocom"><option value="NÃO" ${r.fixo_recebe_comissao_guia!=='SIM'?'selected':''}>Não</option><option value="SIM" ${r.fixo_recebe_comissao_guia==='SIM'?'selected':''}>Sim</option></select></div>
-    <div class="ff"><label>Categoria A — Nome</label><input type="text" id="rco-catA" value="${san(r.categoria_a_nome||'Todos')}"></div>
-    <div class="ff"><label>Categoria A — Códigos</label><input type="text" id="rco-codA" value="${san(r.categoria_a_codigos||'Todos')}" placeholder="ex: FISIO.M,DTM"></div>
-    <div class="ff"><label>% ou R$ Categoria A</label><input type="number" id="rco-pctA" step="0.01" min="0" value="${r.percentual_a||0}"></div>
-    <div class="ff"><label>Unidade A</label><select id="rco-uniA"><option value="%" ${r.unidade_a!=='R$'?'selected':''}>% (percentual)</option><option value="R$" ${r.unidade_a==='R$'?'selected':''}>R$ (fixo por atendimento)</option></select></div>
-    <div class="ff"><label>Categoria B — Nome</label><input type="text" id="rco-catB" value="${san(r.categoria_b_nome||'')}"></div>
-    <div class="ff"><label>Categoria B — Códigos</label><input type="text" id="rco-codB" value="${san(r.categoria_b_codigos||'')}"></div>
-    <div class="ff"><label>% ou R$ Categoria B</label><input type="number" id="rco-pctB" step="0.01" min="0" value="${r.percentual_b||0}"></div>
-    <div class="ff"><label>Unidade B</label><select id="rco-uniB"><option value="%" ${r.unidade_b!=='R$'?'selected':''}>% (percentual)</option><option value="R$" ${r.unidade_b==='R$'?'selected':''}>R$ (fixo por atendimento)</option></select></div>
-    <div class="ff"><label>Variação por Serviço (usa A/B)?</label><select id="rco-varserv"><option value="NÃO" ${r.variacao_por_servico!=='SIM'?'selected':''}>Não</option><option value="SIM" ${r.variacao_por_servico==='SIM'?'selected':''}>Sim</option></select></div>
-  </div>`,`<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="salvarEdicaoRegraComissao()">Salvar</button>`);
-}
-function salvarEdicaoRegraComissao(){
-  const dados={profissional_id:el('rco-id').value,profissional_nome:el('rco-nome').value,tipo_vinculo:el('rco-vinc').value,tipo_remuneracao:el('rco-remun').value,valor_fixo_mensal:el('rco-fixo').value,fixo_recebe_comissao_guia:el('rco-fixocom').value,variacao_por_servico:el('rco-varserv').value,categoria_a_nome:el('rco-catA').value,categoria_a_codigos:el('rco-codA').value,percentual_a:el('rco-pctA').value,unidade_a:el('rco-uniA').value,categoria_b_nome:el('rco-catB').value,categoria_b_codigos:el('rco-codB').value,percentual_b:el('rco-pctB').value,unidade_b:el('rco-uniB').value,ativo:'SIM'};
-  google.script.run.withSuccessHandler(res=>{if(res.ok){fecharModal();toast('Regra de comissão atualizada!','ok');carregarRegrasComissao();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>toast(e.message,'err')).salvarRegraComissao(dados,APP.user);
-}
-
-// ================================================================
-//  DESPESAS RECORRENTES
-// ================================================================
-function carregarDespesasRecorrentes(){
-  const cont=el('page-despesas-recorrentes');
-  cont.innerHTML='<div class="lw"><div class="spin"></div></div>';
-  google.script.run.withSuccessHandler(rows=>{
-    const totalFixo=(rows||[]).filter(r=>r.tipo==='FIXO'&&r.ativo==='SIM').reduce((s,r)=>s+parseFloat(r.valor_padrao||0),0);
-    cont.innerHTML=`<div class="page-hd"><div><h2>Despesas Recorrentes</h2><div class="page-hd-sub">Aluguel, folha, impostos e outras despesas que se repetem todo mês</div></div>
-      <button class="btn btn-o btn-sm" onclick="modalGerarMes()">Gerar Mês</button></div>
-    <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr)">
-      ${kpi('red',ICOS.desp,'Total Fixo Mensal',fmt(totalFixo),(rows||[]).filter(r=>r.ativo==='SIM').length+' recorrência(s) ativa(s)')}
-      ${kpi('amber',ICOS.clock,'Variáveis (sem valor fixo)',(rows||[]).filter(r=>r.tipo==='VARIAVEL'&&r.ativo==='SIM').length,'Preenchidas manualmente no mês')}
-    </div>
-    ${!rows||!rows.length?'<div class="alert alert-info">Nenhuma despesa recorrente cadastrada.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor Padrão</th><th>Vencimento</th><th>Ativo</th></tr></thead><tbody>${rows.map(r=>`<tr>
-      <td><strong>${san(r.descricao)}</strong>${r.observacao?`<div style="font-size:.68rem;color:var(--text-3)">${san(r.observacao)}</div>`:''}</td>
-      <td>${san(r.categoria)}</td><td><span class="bdg ${r.tipo==='FIXO'?'bdg-teal':'bdg-amber'}">${r.tipo}</span></td>
-      <td>${r.tipo==='FIXO'?fmt(r.valor_padrao):'—'}</td><td><code>${r.regra_vencimento}</code></td>
-      <td>${r.ativo==='SIM'?'<span class="bdg bdg-green">Ativo</span>':'<span class="bdg bdg-gray">Inativo</span>'}</td>
-    </tr>`).join('')}</tbody></table></div></div>`}`;
-  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).getDespesasRecorrentes(APP.user);
-}
-function modalGerarMes(){
-  const hoje=new Date();
-  abrirModal('Gerar Despesas do Mês',`<div class="fg fg2">
-    <div class="ff"><label>Mês</label><select id="gm-mes">${Array.from({length:12},(_,i)=>`<option value="${i}" ${i===hoje.getMonth()?'selected':''}>${MESES[i]}</option>`).join('')}</select></div>
-    <div class="ff"><label>Ano</label><input type="number" id="gm-ano" value="${hoje.getFullYear()}"></div>
-  </div><div class="alert alert-blue" style="margin-top:10px"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><div>Gera automaticamente todas as despesas recorrentes ativas para o mês escolhido. Não duplica se já tiver sido gerado.</div></div>`,
-  `<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="confirmarGerarMes()">Gerar</button>`);
-}
-function confirmarGerarMes(){
-  const ano=parseInt(el('gm-ano').value),mes=parseInt(el('gm-mes').value);
-  google.script.run.withSuccessHandler(res=>{
-    fecharModal();
-    if(res.ok){toast(`${res.geradas.length} despesa(s) gerada(s), ${res.puladas.length} pulada(s) (já existiam).`,'ok');}
-    else toast('Erro: '+san(res.msg),'err');
-  }).withFailureHandler(e=>toast(e.message,'err')).gerarDespesasDoMes(ano,mes,APP.user);
 }
 
 // ================================================================

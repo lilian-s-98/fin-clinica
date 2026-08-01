@@ -1,22 +1,37 @@
 // ============================================================
-//  INSTITUTO DA DOR — Code.gs v5.0
+//  INSTITUTO DA DOR — Codigo_Principal.gs  v6.0
 //  Sistema de Gestão Clínica e Financeira
 //  Gabillaud Consultoria | 2026
 //
-//  NOVIDADES v5.0:
-//  - Desempenho por Profissional (visão Admin/Gestor)
-//  - Mantido: checklist por perfil, histórico, notificações,
-//    guias, particulares, despesas, agenda, IA financeira
+//  NOVIDADES v6.0:
+//  - Removido: Assistente de IA (consultarIA e toda a integração
+//    com a API da Anthropic). Não há mais chave de API armazenada.
+//  - Novo módulo de Comissionamento configurável por profissional
+//    (Modulo_Comissionamento.gs)
+//  - Novo módulo de Regras de Convênio / Faturamento configurável
+//    (Modulo_Convenios_Faturamento.gs)
+//  - Novo módulo de Glosas (Modulo_Glosas.gs)
+//  - Novo módulo de Lotes/Protocolos (Modulo_Lotes.gs)
+//  - Dashboard e KPIs ampliados (Modulo_Dashboard_KPI.gs)
+//  - Mantido 100% do que já existia: checklist por perfil,
+//    histórico, notificações, guias, particulares, despesas,
+//    agenda, autenticação, log de auditoria.
+//
+//  ATENÇÃO — LEIA ANTES DE RODAR QUALQUER FUNÇÃO:
+//  setupInicial() CONTINUA existindo apenas para uma planilha NOVA
+//  e vazia (ele limpa o conteúdo das abas). Se sua planilha já tem
+//  dados de produção, NÃO rode setupInicial(). Rode migrarV6()
+//  em vez disso — ela só ADICIONA as abas/colunas novas, sem
+//  apagar nada do que já existe.
 // ============================================================
 
 const CONFIG = {
   SPREADSHEET_ID: SpreadsheetApp.getActive().getId(),
   META_ANUAL: 1200000,
-  VERSION: '5.0',
+  VERSION: '6.0',
   PERFIS: ['admin', 'gestor', 'recepcao', 'fisioterapeuta'],
   MAX_LOGIN_ATTEMPTS: 5,
   LOCKOUT_MINUTES: 5,
-  ANTHROPIC_API_KEY: PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY') || '',
   SHEETS: {
     CONFIG:            'Config',
     USUARIOS:          'Usuários',
@@ -35,7 +50,12 @@ const CONFIG = {
     CHECKLIST_HIST:    'Checklist_Historico',
     NOTIFICACOES:      'Notificações',
     LOG:               'Log',
-    LOGIN_ATTEMPTS:    'Login_Attempts'
+    LOGIN_ATTEMPTS:    'Login_Attempts',
+    // --- novas abas v6.0 ---
+    REGRAS_CONVENIO:   'Regras_Convenio',
+    REGRAS_COMISSAO:   'Regras_Comissao',
+    GLOSAS:            'Glosas',
+    LOTES:             'Lotes'
   }
 };
 
@@ -45,17 +65,17 @@ const CONFIG = {
 function doGet(e) {
   return HtmlService.createTemplateFromFile('index')
     .evaluate()
-    .setTitle('Instituto da Dor — Gestão v5.0')
+    .setTitle('Instituto da Dor — Gestão v6.0')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 // ============================================================
-//  SETUP INICIAL  (igual à v4.0 — mantido)
+//  SETUP INICIAL — SOMENTE PARA PLANILHA NOVA (apaga conteúdo!)
 // ============================================================
 function setupInicial() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  Logger.log('Iniciando setup v5.0...');
+  Logger.log('Iniciando setup v6.0 (planilha nova)...');
 
   _criarAba(ss, CONFIG.SHEETS.CONFIG,         ['chave','valor']);
   _criarAba(ss, CONFIG.SHEETS.USUARIOS,       ['id','nome','email','perfil','ativo','senha','criado_em','ultimo_login','cor_avatar','cargo']);
@@ -66,8 +86,8 @@ function setupInicial() {
   _criarAba(ss, CONFIG.SHEETS.CODIGOS,        ['id','convenio_id','convenio_nome','codigo','descricao','valor','ativo']);
   _criarAba(ss, CONFIG.SHEETS.AGENDA,         ['id','data','hora','hora_fim','profissional_id','profissional_nome','paciente_id','paciente_nome','servico_id','servico_nome','tipo','status','observacao','criado_por','criado_em','atualizado_em','cor_profissional','duracao_minutos']);
   _criarAba(ss, CONFIG.SHEETS.PARTICULARES,   ['id','data','mes','paciente_id','paciente_nome','profissional_id','profissional_nome','servico_id','servico_nome','valor','forma_pgto','quantidade','tipo_qtd','observacao','status','lancado_por','criado_em','agenda_id']);
-  _criarAba(ss, CONFIG.SHEETS.GUIAS,          ['id','data','mes','convenio_id','convenio_nome','paciente_id','paciente_nome','profissional_id','profissional_nome','lote','protocolo','num_nf','valor_total','prazo_dias','data_envio','data_prev_pgto','data_pgto_real','status','valor_glosado','observacao','lancado_por','criado_em']);
-  _criarAba(ss, CONFIG.SHEETS.ITENS_GUIA,     ['id','guia_id','convenio_nome','codigo','descricao','quantidade','valor_unitario','valor_total']);
+  _criarAba(ss, CONFIG.SHEETS.GUIAS,          ['id','data','mes','convenio_id','convenio_nome','paciente_id','paciente_nome','profissional_id','profissional_nome','lote','protocolo','num_nf','valor_total','prazo_dias','data_envio','data_prev_pgto','data_pgto_real','status','valor_glosado','observacao','lancado_por','criado_em','lote_id']);
+  _criarAba(ss, CONFIG.SHEETS.ITENS_GUIA,     ['id','guia_id','convenio_nome','codigo','descricao','quantidade','valor_unitario','valor_total','profissional_id','profissional_nome','concluido']);
   _criarAba(ss, CONFIG.SHEETS.DESPESAS,       ['id','data','mes','categoria','descricao','fornecedor','valor','forma_pgto','tipo','status','data_vencimento','data_pgto','comprovante_url','observacao','lancado_por','criado_em']);
   _criarAba(ss, CONFIG.SHEETS.RECEBIMENTOS,   ['id','data','tipo','referencia_id','convenio_nome','paciente_nome','valor','forma_pgto','mes','observacao','criado_em']);
   _criarAba(ss, CONFIG.SHEETS.CHECKLIST_DEF,  ['id','perfil','titulo','descricao','categoria','obrigatorio','ordem','ativo','icone']);
@@ -75,10 +95,86 @@ function setupInicial() {
   _criarAba(ss, CONFIG.SHEETS.NOTIFICACOES,   ['id','tipo','titulo','mensagem','para_perfil','lida','criado_em','criado_por']);
   _criarAba(ss, CONFIG.SHEETS.LOG,            ['timestamp','usuario','acao','detalhes','ip']);
   _criarAba(ss, CONFIG.SHEETS.LOGIN_ATTEMPTS, ['email','tentativas','ultimo_at','bloqueado_ate']);
+  // --- novas abas v6.0 ---
+  _criarAba(ss, CONFIG.SHEETS.REGRAS_CONVENIO,['convenio_id','convenio_nome','tipo_faturamento','dia_fixo','dia_corte','prazo_envio_dias_uteis','prazo_recebimento_dias','atraso_frequente','ativo','observacao']);
+  _criarAba(ss, CONFIG.SHEETS.REGRAS_COMISSAO,['profissional_id','profissional_nome','tipo_vinculo','tipo_remuneracao','valor_fixo_mensal','fixo_recebe_comissao_guia','variacao_particular_convenio','percentual_particular','variacao_por_servico','categoria_a_nome','categoria_a_codigos','percentual_a','categoria_b_nome','categoria_b_codigos','percentual_b','ativo']);
+  _criarAba(ss, CONFIG.SHEETS.GLOSAS,         ['id','guia_id','convenio_nome','data_glosa','valor_glosado','motivo','status','observacao','lancado_por','criado_em']);
+  _criarAba(ss, CONFIG.SHEETS.LOTES,          ['id','lote','convenio_id','convenio_nome','data_fechamento','data_envio','data_prev_recebimento','valor_total_lote','valor_recebido','valor_glosado','status','guias_ids','observacao','criado_em','atualizado_em']);
 
   _popularDadosIniciais(ss);
-  Logger.log('Setup v5.0 concluído!');
-  return { ok: true, msg: 'Setup v5.0 realizado com sucesso!' };
+  Logger.log('Setup v6.0 concluído!');
+  return { ok: true, msg: 'Setup v6.0 realizado com sucesso!' };
+}
+
+// ============================================================
+//  MIGRAÇÃO SEGURA v5 -> v6  (NÃO apaga dados existentes)
+//  Rode esta função UMA VEZ na sua planilha atual de produção.
+// ============================================================
+function migrarV6() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const log = [];
+
+  // 1) cria as abas novas, se não existirem (sem mexer nas que já existem)
+  const novasAbas = {
+    [CONFIG.SHEETS.REGRAS_CONVENIO]: ['convenio_id','convenio_nome','tipo_faturamento','dia_fixo','dia_corte','prazo_envio_dias_uteis','prazo_recebimento_dias','atraso_frequente','ativo','observacao'],
+    [CONFIG.SHEETS.REGRAS_COMISSAO]: ['profissional_id','profissional_nome','tipo_vinculo','tipo_remuneracao','valor_fixo_mensal','fixo_recebe_comissao_guia','variacao_particular_convenio','percentual_particular','variacao_por_servico','categoria_a_nome','categoria_a_codigos','percentual_a','categoria_b_nome','categoria_b_codigos','percentual_b','ativo'],
+    [CONFIG.SHEETS.GLOSAS]: ['id','guia_id','convenio_nome','data_glosa','valor_glosado','motivo','status','observacao','lancado_por','criado_em'],
+    [CONFIG.SHEETS.LOTES]: ['id','lote','convenio_id','convenio_nome','data_fechamento','data_envio','data_prev_recebimento','valor_total_lote','valor_recebido','valor_glosado','status','guias_ids','observacao','criado_em','atualizado_em']
+  };
+  Object.keys(novasAbas).forEach(nome => {
+    let sh = ss.getSheetByName(nome);
+    if (!sh) {
+      sh = ss.insertSheet(nome);
+      const cab = novasAbas[nome];
+      sh.getRange(1,1,1,cab.length).setValues([cab]).setFontWeight('bold').setBackground('#0049AF').setFontColor('#FFFFFF');
+      sh.setFrozenRows(1);
+      log.push('Aba criada: ' + nome);
+    } else {
+      log.push('Aba já existia (mantida): ' + nome);
+    }
+  });
+
+  // 2) adiciona colunas novas em abas existentes, SEM apagar as atuais
+  log.push(..._garantirColunas(ss, CONFIG.SHEETS.ITENS_GUIA, ['profissional_id','profissional_nome','concluido']));
+  log.push(..._garantirColunas(ss, CONFIG.SHEETS.GUIAS, ['lote_id']));
+
+  // 3) popula Regras_Convenio a partir da aba Convênios + regras do PDF,
+  //    SOMENTE para convênios que ainda não têm regra cadastrada.
+  _popularRegrasConvenioPadrao(ss, log);
+
+  // 4) popula Regras_Comissao a partir da aba Profissionais,
+  //    SOMENTE para profissionais que ainda não têm regra cadastrada.
+  _popularRegrasComissaoPadrao(ss, log);
+
+  Logger.log(log.join('\n'));
+  return { ok: true, log };
+}
+
+// Garante que uma aba tenha determinadas colunas ao final do cabeçalho,
+// sem apagar linhas nem colunas existentes. Preenche células novas com ''.
+function _garantirColunas(ss, nomeAba, colunasNovas) {
+  const log = [];
+  const sh = ss.getSheetByName(nomeAba);
+  if (!sh) { log.push('AVISO: aba ' + nomeAba + ' não encontrada, colunas não adicionadas.'); return log; }
+  const lastCol = sh.getLastColumn();
+  const cabecalhoAtual = sh.getRange(1,1,1,lastCol).getValues()[0].map(String);
+  colunasNovas.forEach(col => {
+    if (cabecalhoAtual.indexOf(col) === -1) {
+      const novaCol = sh.getLastColumn() + 1;
+      sh.getRange(1, novaCol).setValue(col).setFontWeight('bold').setBackground('#0049AF').setFontColor('#FFFFFF');
+      const lastRow = sh.getLastRow();
+      if (lastRow > 1) {
+        // valor padrão seguro: 'concluido' assume SIM (não travar comissão de guias antigas),
+        // as demais ficam em branco para preenchimento manual.
+        const padrao = col === 'concluido' ? 'SIM' : '';
+        sh.getRange(2, novaCol, lastRow-1, 1).setValue(padrao);
+      }
+      log.push('Coluna "' + col + '" adicionada em ' + nomeAba);
+    } else {
+      log.push('Coluna "' + col + '" já existia em ' + nomeAba);
+    }
+  });
+  return log;
 }
 
 function _criarAba(ss, nome, cabecalhos) {
@@ -102,10 +198,10 @@ function _popularDadosIniciais(ss) {
 
   const shC = ss.getSheetByName(CONFIG.SHEETS.CONVENIOS);
   shC.getRange(2,1,12,7).setValues([
-    ['CONV001','GEAP',60,'','SIM','',''], ['CONV002','AMIL',30,'','SIM','',''],
-    ['CONV003','CASSÍ',90,'','SIM','',''], ['CONV004','CASSIND',60,'','SIM','',''],
+    ['CONV001','GEAP',90,'','SIM','',''], ['CONV002','AMIL',30,'','SIM','',''],
+    ['CONV003','CASSÍ',30,'','SIM','',''], ['CONV004','CASSIND',60,'','SIM','',''],
     ['CONV005','CAPESESP',60,'','SIM','',''], ['CONV006','BLUE',60,'','SIM','',''],
-    ['CONV007','PETROBRAS',60,'','SIM','',''], ['CONV008','ASSEC',60,'','SIM','',''],
+    ['CONV007','PETROBRAS',30,'','SIM','',''], ['CONV008','ASSEC',60,'','SIM','',''],
     ['CONV009','CASSE',60,'','SIM','',''], ['CONV010','CASEC',60,'','SIM','',''],
     ['CONV011','CASSIND2',60,'','SIM','',''], ['CONV012','PARTICULAR',0,'','SIM','',''],
   ]);
@@ -113,7 +209,7 @@ function _popularDadosIniciais(ss) {
   const shP = ss.getSheetByName(CONFIG.SHEETS.PROFISSIONAIS);
   shP.getRange(2,1,7,11).setValues([
     ['PROF001','BRUNO NASCIMENTO','Fisioterapia Motora / Liberação','PJ','','SIM',new Date(),'#0049AF','','',''],
-    ['PROF002','LETICIA HELEN','Fisioterapia Motora','PJ','','SIM',new Date(),'#e63946','','',''],
+    ['PROF002','LETICIA HELEN','Fisioterapia Motora','CLT','','SIM',new Date(),'#e63946','','',''],
     ['PROF003','LUCAS REZENDE','RPG / Fisioterapia Vestibular','PJ','','SIM',new Date(),'#FAAF34','','',''],
     ['PROF004','MARIANA MENDONÇA','TT Dor / Liberação / DTM','PJ','','SIM',new Date(),'#8b5cf6','','',''],
     ['PROF005','MILA PIRES','Fisioterapia Pélvica','PJ','','SIM',new Date(),'#2a9d8f','','',''],
@@ -123,14 +219,14 @@ function _popularDadosIniciais(ss) {
 
   const shSv = ss.getSheetByName(CONFIG.SHEETS.SERVICOS);
   shSv.getRange(2,1,8,6).setValues([
-    ['SRV001','FISIOTERAPIA MOTORA','Fisioterapia',120,'SIM',50],
-    ['SRV002','FISIOTERAPIA PÉLVICA','Fisioterapia',150,'SIM',50],
-    ['SRV003','RPG','Fisioterapia',150,'SIM',60],
+    ['SRV001','FISIOTERAPIA MOTORA','Fisioterapia',130,'SIM',50],
+    ['SRV002','FISIOTERAPIA PÉLVICA','Fisioterapia',200,'SIM',50],
+    ['SRV003','RPG','Fisioterapia',180,'SIM',60],
     ['SRV004','AVALIAÇÃO INICIAL','Avaliação',180,'SIM',60],
-    ['SRV005','ACUPUNTURA','Terapia Complementar',130,'SIM',50],
-    ['SRV006','HOME CARE - FISIOTERAPIA','Home Care',200,'SIM',60],
-    ['SRV007','QUIROPRAXIA','Terapia Manual',140,'SIM',50],
-    ['SRV008','DRENAGEM LINFÁTICA','Estética',100,'SIM',60],
+    ['SRV005','ACUPUNTURA','Terapia Complementar',180,'SIM',50],
+    ['SRV006','HOME CARE - FISIOTERAPIA','Home Care',180,'SIM',60],
+    ['SRV007','QUIROPRAXIA','Terapia Manual',220,'SIM',50],
+    ['SRV008','DRENAGEM LINFÁTICA','Estética',180,'SIM',60],
   ]);
 
   const shCd = ss.getSheetByName(CONFIG.SHEETS.CHECKLIST_DEF);
@@ -161,7 +257,7 @@ function _popularDadosIniciais(ss) {
     ['CK_F008','fisioterapeuta','Assinar guias dos convênios atendidos','Rubricar as guias dos atendimentos realizados','Administrativo','SIM',8,'SIM','pen-tool'],
   ]);
 
-  _log('SISTEMA', 'SETUP_V5', 'Setup inicial v5.0 realizado');
+  _log('SISTEMA', 'SETUP_V6', 'Setup inicial v6.0 realizado');
 }
 
 // ============================================================
@@ -260,7 +356,7 @@ function registrarLogout(usuario) {
 }
 
 // ============================================================
-//  HELPERS
+//  HELPERS GERAIS (usados por todos os módulos)
 // ============================================================
 const _san = v => v ? String(v).replace(/[<>'"&]/g,'').trim() : '';
 const _sanNum = (v,d) => { const n = parseFloat(v); return isNaN(n) ? (d||0) : n; };
@@ -292,7 +388,7 @@ function _getOrCreateFolder(nome) {
 }
 
 // ============================================================
-//  LISTAS
+//  LISTAS (para popular selects no front-end)
 // ============================================================
 function getListas() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -305,7 +401,7 @@ function getListas() {
 }
 
 // ============================================================
-//  CHECKLIST v5 — Por perfil, histórico por usuário
+//  CHECKLIST — Por perfil, histórico por usuário (mantido)
 // ============================================================
 function getChecklistDefinicoes(usuario) {
   try {
@@ -429,7 +525,7 @@ function salvarChecklistDefinicao(dados, usuario) {
 }
 
 // ============================================================
-//  USUÁRIOS
+//  USUÁRIOS (mantido)
 // ============================================================
 function getUsuarios(usuario) {
   try {
@@ -465,7 +561,7 @@ function excluirUsuario(id, usuario) {
 }
 
 // ============================================================
-//  PACIENTES
+//  PACIENTES (mantido)
 // ============================================================
 function salvarPaciente(dados, usuario) {
   try {
@@ -489,7 +585,8 @@ function salvarPaciente(dados, usuario) {
 }
 
 // ============================================================
-//  PROFISSIONAIS
+//  PROFISSIONAIS (mantido — a regra financeira detalhada agora
+//  vive em Regras_Comissao, ver Modulo_Comissionamento.gs)
 // ============================================================
 function salvarProfissional(dados, usuario) {
   try {
@@ -498,12 +595,18 @@ function salvarProfissional(dados, usuario) {
     const id = 'PROF' + String(sh.getLastRow()).padStart(3,'0');
     sh.appendRow([id,_san(dados.nome),_san(dados.especialidade),_san(dados.tipo_vinculo||'PJ'),_sanNum(dados.percentual),'SIM',new Date(),_san(dados.cor||'#0049AF'),_san(dados.cro),'','']);
     _log(usuario.nome,'NOVO_PROFISSIONAL',dados.nome);
+    // ATENÇÃO (poka-yoke): todo profissional novo PRECISA de uma linha em
+    // Regras_Comissao para que a comissão dele seja calculada corretamente.
+    // Criamos aqui um rascunho com 0% para forçar o preenchimento manual
+    // em vez de deixar o profissional sem nenhuma regra (o que geraria
+    // comissão silenciosamente igual a zero sem avisar ninguém).
+    _garantirRascunhoRegraComissao(id, _san(dados.nome), _san(dados.tipo_vinculo||'PJ'));
     return {ok:true,id};
   } catch(e) { return {ok:false,msg:e.toString()}; }
 }
 
 // ============================================================
-//  AGENDA
+//  AGENDA (mantido)
 // ============================================================
 function getAgendamentos(filtros) {
   const rows = _getSheet(SpreadsheetApp.getActiveSpreadsheet(), CONFIG.SHEETS.AGENDA);
@@ -547,7 +650,7 @@ function atualizarStatusAgendamento(id, status, usuario) {
 }
 
 // ============================================================
-//  PARTICULARES
+//  PARTICULARES (mantido)
 // ============================================================
 function salvarParticular(dados, usuario) {
   try {
@@ -571,67 +674,7 @@ function getParticulares(filtros) {
 }
 
 // ============================================================
-//  GUIAS
-// ============================================================
-function salvarGuia(dados, itens, usuario) {
-  try {
-    _verificarUsuario(usuario, ['admin','gestor','recepcao']);
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const shG = ss.getSheetByName(CONFIG.SHEETS.GUIAS);
-    const shI = ss.getSheetByName(CONFIG.SHEETS.ITENS_GUIA);
-    const id = 'GUIA' + new Date().getTime();
-    const mes = _mesDoDate(new Date(dados.data));
-    const valorTotal = itens.reduce((s,it) => s + (_sanNum(it.valor_unitario)*parseInt(it.quantidade||1)),0);
-    let dataPrev = '';
-    if (dados.data_envio && dados.prazo_dias) {
-      const d = new Date(dados.data_envio);
-      d.setDate(d.getDate() + parseInt(dados.prazo_dias));
-      dataPrev = Utilities.formatDate(d,'America/Sao_Paulo','dd/MM/yyyy');
-    }
-    shG.appendRow([id,dados.data,mes,dados.convenio_id,dados.convenio_nome,dados.paciente_id,dados.paciente_nome,dados.profissional_id,dados.profissional_nome,dados.lote||'',dados.protocolo||'',dados.num_nf||'',valorTotal,dados.prazo_dias||60,dados.data_envio||'',dataPrev,'','Pendente',0,dados.observacao||'',usuario.nome,new Date()]);
-    itens.forEach((it,idx) => {
-      const vt = _sanNum(it.valor_unitario)*parseInt(it.quantidade||1);
-      shI.appendRow([id+'_'+(idx+1),id,dados.convenio_nome,it.codigo,it.descricao,parseInt(it.quantidade||1),_sanNum(it.valor_unitario),vt]);
-    });
-    _log(usuario.nome,'NOVA_GUIA',`${id} | ${dados.convenio_nome} | R$ ${valorTotal.toFixed(2)}`);
-    return {ok:true,id,valorTotal};
-  } catch(e) { return {ok:false,msg:e.toString()}; }
-}
-
-function getGuias(filtros) {
-  const rows = _getSheet(SpreadsheetApp.getActiveSpreadsheet(), CONFIG.SHEETS.GUIAS);
-  const headers = ['id','data','mes','convenio_id','convenio_nome','paciente_id','paciente_nome','profissional_id','profissional_nome','lote','protocolo','num_nf','valor_total','prazo_dias','data_envio','data_prev_pgto','data_pgto_real','status','valor_glosado','observacao','lancado_por','criado_em'];
-  let result = rows.map(r => _toObj(headers,r));
-  if (filtros && filtros.mes && filtros.mes !== 'todos') result = result.filter(r => r.mes === filtros.mes);
-  return result;
-}
-
-function getItensGuia(guia_id) {
-  const rows = _getSheet(SpreadsheetApp.getActiveSpreadsheet(), CONFIG.SHEETS.ITENS_GUIA);
-  const headers = ['id','guia_id','convenio_nome','codigo','descricao','quantidade','valor_unitario','valor_total'];
-  return rows.filter(r => r[1]===guia_id).map(r => _toObj(headers,r));
-}
-
-function atualizarStatusGuia(guia_id, status, data_pgto, valor_glosado, usuario) {
-  try {
-    _verificarUsuario(usuario, ['admin','gestor']);
-    const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEETS.GUIAS);
-    const allData = sh.getDataRange().getValues();
-    for (let i = 1; i < allData.length; i++) {
-      if (allData[i][0] === guia_id) {
-        sh.getRange(i+1,17).setValue(data_pgto||'');
-        sh.getRange(i+1,18).setValue(status);
-        sh.getRange(i+1,19).setValue(_sanNum(valor_glosado)||0);
-        _log(usuario.nome,'STATUS_GUIA',`${guia_id} → ${status}`);
-        return {ok:true};
-      }
-    }
-    return {ok:false,msg:'Guia não encontrada'};
-  } catch(e) { return {ok:false,msg:e.toString()}; }
-}
-
-// ============================================================
-//  DESPESAS
+//  DESPESAS (mantido)
 // ============================================================
 function salvarDespesa(dados, usuario) {
   try {
@@ -672,121 +715,7 @@ function uploadComprovante(base64, filename, despesa_id, usuario) {
 }
 
 // ============================================================
-//  DASHBOARD
-// ============================================================
-function getDashboardData(filtros) {
-  try {
-    const particulares = getParticulares(filtros);
-    const guias = getGuias(filtros);
-    const despesas = getDespesas(filtros);
-    const recParticular = particulares.reduce((s,r) => s+_sanNum(r.valor),0);
-    const recConvenio = guias.reduce((s,r) => s+_sanNum(r.valor_total),0);
-    const totalDespesas = despesas.reduce((s,r) => s+_sanNum(r.valor),0);
-    const resultado = (recParticular + recConvenio) - totalDespesas;
-    const MESES = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
-    const porMes = {};
-    MESES.forEach(m => porMes[m] = {particular:0,convenio:0,despesa:0});
-    particulares.forEach(r => { if(porMes[r.mes]) porMes[r.mes].particular += _sanNum(r.valor); });
-    guias.forEach(r => { if(porMes[r.mes]) porMes[r.mes].convenio += _sanNum(r.valor_total); });
-    despesas.forEach(r => { if(porMes[r.mes]) porMes[r.mes].despesa += _sanNum(r.valor); });
-    const porConvenio = {};
-    guias.forEach(r => { porConvenio[r.convenio_nome] = (porConvenio[r.convenio_nome]||0) + _sanNum(r.valor_total); });
-    const porProfissional = {};
-    particulares.forEach(r => { porProfissional[r.profissional_nome] = (porProfissional[r.profissional_nome]||0) + _sanNum(r.valor); });
-    const hoje = new Date();
-    const aVencer = guias.filter(g => g.status==='Pendente' && g.data_prev_pgto)
-      .map(g => ({...g, dias_restantes: Math.round((new Date(g.data_prev_pgto)-hoje)/86400000)}))
-      .sort((a,b) => a.dias_restantes-b.dias_restantes).slice(0,8);
-    const agendaHoje = getAgendamentos({data:_dateStr(hoje)});
-    const conf = getRelatorioConformidade(7);
-    return {
-      ok: true,
-      kpis: {recParticular,recConvenio,totalDespesas,resultado,totalReceita:recParticular+recConvenio,
-        qtdGuiasPendentes:guias.filter(g=>g.status==='Pendente').length,
-        ticketMedio: particulares.length > 0 ? recParticular/particulares.length : 0,
-        qtdHoje: agendaHoje.length,
-        pctMeta: Math.min(((recParticular+recConvenio)/CONFIG.META_ANUAL)*100,999).toFixed(1)
-      },
-      porMes, porConvenio, porProfissional, aVencer,
-      agendaHoje, conformidade: conf
-    };
-  } catch(e) { return {ok:false,msg:e.toString()}; }
-}
-
-// ============================================================
-//  DESEMPENHO POR PROFISSIONAL  (NOVO v5.0 — visão Admin/Gestor)
-// ============================================================
-function getDesempenhoProfissionais(filtros, usuario) {
-  try {
-    _verificarUsuario(usuario, ['admin','gestor']);
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const mes = (filtros && filtros.mes) || 'todos';
-
-    const profs = _getSheet(ss, CONFIG.SHEETS.PROFISSIONAIS).filter(r=>r[5]==='SIM')
-      .map(r=>({id:r[0],nome:r[1],especialidade:r[2],cor:r[7]||'#0049AF'}));
-
-    const particulares = getParticulares({mes});
-    const guias = getGuias({mes});
-
-    const agendaRows = _getSheet(ss, CONFIG.SHEETS.AGENDA);
-    const headersAg = ['id','data','hora','hora_fim','profissional_id','profissional_nome','paciente_id','paciente_nome','servico_id','servico_nome','tipo','status','observacao','criado_por','criado_em','atualizado_em','cor_profissional','duracao_minutos'];
-    const agenda = agendaRows.map(r=>_toObj(headersAg,r))
-      .filter(r => mes === 'todos' || (r.data && _mesDoDate(new Date(r.data)) === mes));
-
-    const dados = profs.map(p => {
-      const pp = particulares.filter(x=>x.profissional_id===p.id);
-      const gg = guias.filter(x=>x.profissional_id===p.id);
-      const ag = agenda.filter(x=>x.profissional_id===p.id && x.status!=='cancelado');
-      const valorParticular = pp.reduce((s,x)=>s+_sanNum(x.valor),0);
-      const valorConvenio = gg.reduce((s,x)=>s+_sanNum(x.valor_total),0);
-      const compareceu = ag.filter(x=>x.status==='compareceu').length;
-      const faltou = ag.filter(x=>x.status==='faltou').length;
-      const taxaComparecimento = ag.length>0 ? Math.round((compareceu/ag.length)*100) : null;
-      return {
-        id: p.id, nome: p.nome, especialidade: p.especialidade, cor: p.cor,
-        qtd_particular: pp.length, valor_particular: valorParticular,
-        qtd_convenio: gg.length, valor_convenio: valorConvenio,
-        valor_total: valorParticular + valorConvenio,
-        ticket_medio: pp.length>0 ? valorParticular/pp.length : 0,
-        qtd_atendimentos: ag.length, compareceu, faltou,
-        taxa_comparecimento: taxaComparecimento
-      };
-    }).sort((a,b) => b.valor_total - a.valor_total);
-
-    const totalGeral = dados.reduce((s,r)=>s+r.valor_total,0);
-    dados.forEach(r => r.participacao = totalGeral>0 ? Math.round((r.valor_total/totalGeral)*1000)/10 : 0);
-
-    return { ok: true, dados, totalGeral };
-  } catch(e) { return { ok:false, dados:[], msg: e.toString() }; }
-}
-
-// ============================================================
-//  IA — ANÁLISE FINANCEIRA
-// ============================================================
-function consultarIA(pergunta, contexto, historico, usuario) {
-  try {
-    _verificarUsuario(usuario, ['admin','gestor']);
-    const apiKey = CONFIG.ANTHROPIC_API_KEY;
-    if (!apiKey) return 'Configure a chave ANTHROPIC_API_KEY nas propriedades do script para ativar a IA.';
-    const sys = `Você é "ID Assist", analista financeiro sênior especializado em clínicas de fisioterapia e saúde.
-Responda de forma objetiva, em português, com insights acionáveis baseados nos dados reais do Instituto da Dor:
-${contexto||'Sem dados disponíveis no momento'}
-Seja direto, use bullet points quando útil, evite jargão excessivo. Máx. 200 palavras.`;
-    const messages = [...(historico||[]).slice(-6), {role:'user',content:String(pergunta).slice(0,1000)}];
-    const resp = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-      payload:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:500,system:sys,messages}),
-      muteHttpExceptions:true
-    });
-    const json = JSON.parse(resp.getContentText());
-    if (json.content && json.content[0]) return json.content[0].text;
-    return 'Não foi possível obter resposta. Tente novamente.';
-  } catch(e) { return 'Erro ao consultar IA: ' + e.message; }
-}
-
-// ============================================================
-//  NOTIFICAÇÕES
+//  NOTIFICAÇÕES (mantido)
 // ============================================================
 function _criarNotificacao(tipo, titulo, mensagem, para_perfil, criado_por) {
   try {
@@ -813,7 +742,7 @@ function marcarNotificacaoLida(id) {
 }
 
 // ============================================================
-//  LOG DE AUDITORIA
+//  LOG DE AUDITORIA (mantido)
 // ============================================================
 function getLog(usuario) {
   try {

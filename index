@@ -501,6 +501,21 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>Desempenho da Equipe
         </div>
       </div>
+      <div class="nav-sec nav-fin" style="display:none">
+        <div class="nav-lbl">Faturamento &amp; Convênios</div>
+        <div class="nav-item" data-page="lotes" onclick="goPage('lotes')">
+          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>Lotes / Protocolos
+        </div>
+        <div class="nav-item" data-page="glosas" onclick="goPage('glosas')">
+          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>Glosas
+        </div>
+        <div class="nav-item" data-page="conferencia" onclick="goPage('conferencia')">
+          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Conferência de Prazos
+        </div>
+        <div class="nav-item" data-page="projecao" onclick="goPage('projecao')">
+          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Projeção de Recebimentos
+        </div>
+      </div>
       <div class="nav-sec nav-cad" style="display:none">
         <div class="nav-lbl">Cadastros</div>
         <div class="nav-item" data-page="pacientes" onclick="goPage('pacientes')">
@@ -508,6 +523,18 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
         </div>
         <div class="nav-item" data-page="profissionais" onclick="goPage('profissionais')">
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Profissionais
+        </div>
+      </div>
+      <div class="nav-sec nav-fin" style="display:none">
+        <div class="nav-lbl">Configurações Financeiras</div>
+        <div class="nav-item" data-page="regras-convenio" onclick="goPage('regras-convenio')">
+          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 19.07l1.41-1.41M4.93 4.93l1.41 1.41M19.07 19.07l-1.41-1.41M1 12h2M21 12h2M12 1v2M12 21v2"/></svg>Regras de Convênio
+        </div>
+        <div class="nav-item" data-page="regras-comissao" onclick="goPage('regras-comissao')">
+          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Regras de Comissão
+        </div>
+        <div class="nav-item" data-page="despesas-recorrentes" onclick="goPage('despesas-recorrentes')">
+          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Despesas Recorrentes
         </div>
       </div>
       <div class="nav-sec nav-adm" style="display:none">
@@ -577,6 +604,13 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
     <section class="page" id="page-conformidade"></section>
     <section class="page" id="page-checklist-config"></section>
     <section class="page" id="page-desempenho"></section>
+    <section class="page" id="page-lotes"></section>
+    <section class="page" id="page-glosas"></section>
+    <section class="page" id="page-conferencia"></section>
+    <section class="page" id="page-projecao"></section>
+    <section class="page" id="page-regras-convenio"></section>
+    <section class="page" id="page-regras-comissao"></section>
+    <section class="page" id="page-despesas-recorrentes"></section>
 
     <!-- NOVO PARTICULAR -->
     <section class="page" id="page-novo-particular">
@@ -891,7 +925,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 // ================================================================
 //  INSTITUTO DA DOR — JS v5.0  |  Gabillaud Consultoria 2026
 // ================================================================
-const APP = { user:null, listas:null, paginaAtual:'dashboard', agData:new Date(), agendamentos:[], compB64:null, compNome:'', loginAttempts:0, lastAttempt:0, aiHistory:[], checkDefs:[], dashCtx:null };
+const APP = { user:null, listas:null, paginaAtual:'dashboard', agData:new Date(), agendamentos:[], compB64:null, compNome:'', loginAttempts:0, lastAttempt:0, checkDefs:[], dashCtx:null };
 const MESES = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
 const MESES_ABR = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const CORES = ['#0049AF','#FAAF34','#0f9d76','#e63946','#9b5de5','#06d6a0','#e76f51','#fb8500','#457b9d','#c77dff','#52b788','#ff6b6b'];
@@ -980,10 +1014,13 @@ const TITULOS = {
   'nova-guia':'Nova Guia Convênio',agenda:'Agenda de Atendimentos',
   particulares:'Lançamentos Particulares',guias:'Guias e Convênios',
   'a-receber':'A Receber',despesas:'Despesas',fluxo:'Fluxo de Caixa',desempenho:'Desempenho da Equipe',
-  pacientes:'Pacientes',profissionais:'Profissionais',usuarios:'Usuários e Acesso',auditoria:'Auditoria LGPD'
+  pacientes:'Pacientes',profissionais:'Profissionais',usuarios:'Usuários e Acesso',auditoria:'Auditoria LGPD',
+  lotes:'Lotes / Protocolos',glosas:'Glosas',conferencia:'Conferência de Prazos de Recebimento',
+  projecao:'Projeção de Recebimentos','regras-convenio':'Regras de Faturamento por Convênio',
+  'regras-comissao':'Regras de Comissão por Profissional','despesas-recorrentes':'Despesas Recorrentes'
 };
 const PERM_ADMIN = ['usuarios','auditoria'];
-const PERM_GESTOR = ['particulares','guias','a-receber','despesas','fluxo','desempenho','pacientes','profissionais','conformidade','checklist-config'];
+const PERM_GESTOR = ['particulares','guias','a-receber','despesas','fluxo','desempenho','pacientes','profissionais','conformidade','checklist-config','lotes','glosas','conferencia','projecao','regras-convenio','regras-comissao','despesas-recorrentes'];
 
 function goPage(id){
   if(!APP.user)return;
@@ -1005,7 +1042,10 @@ function goPage(id){
     'nova-guia':popularDropsGuia,agenda:renderAgenda,particulares:carregarParticulares,
     guias:carregarGuias,'a-receber':carregarAReceber,despesas:carregarDespesas,
     fluxo:carregarFluxo,desempenho:renderDesempenho,pacientes:carregarPacs,profissionais:carregarProfs,
-    usuarios:carregarUsrs,auditoria:carregarLog
+    usuarios:carregarUsrs,auditoria:carregarLog,
+    lotes:carregarLotes,glosas:carregarGlosas,conferencia:carregarConferencia,projecao:carregarProjecao,
+    'regras-convenio':carregarRegrasConvenio,'regras-comissao':carregarRegrasComissao,
+    'despesas-recorrentes':carregarDespesasRecorrentes
   };
   if(actions[id]) actions[id]();
 }
@@ -1054,35 +1094,36 @@ const ICOS = {
   trofeu:'<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 6h2a2 2 0 0 1 0 4h-1M7 6H5a2 2 0 0 0 0 4h1"/>'
 };
 
+function buildAlertasFinanceiros(d){
+  const alertas=[];
+  const rg=d.resumoGlosas||{};
+  if(rg.totalGlosado>0) alertas.push({tipo:'err',ic:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',txt:`${fmt(rg.totalGlosado)} em glosas no período (${rg.qtd||0} registro(s))`,acao:"goPage('glosas')",btn:'Ver Glosas'});
+  const sl=d.statusLotes||{};
+  const lotesAbertos=(sl['Aberto']?.qtd||0)+(sl['Enviado']?.qtd||0);
+  if(lotesAbertos>0) alertas.push({tipo:'warn',ic:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',txt:`${lotesAbertos} lote(s) de convênio ainda não protocolado(s)`,acao:"goPage('lotes')",btn:'Ver Lotes'});
+  const av=(d.aVencer||[]).filter(g=>g.dias_restantes<0);
+  if(av.length>0) alertas.push({tipo:'err',ic:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',txt:`${av.length} guia(s) já vencida(s) sem baixa de pagamento`,acao:"goPage('a-receber')",btn:'Ver A Receber'});
+  if(!alertas.length) return '<div class="alert alert-info" style="margin:0"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div>Nenhum alerta financeiro no período — tudo em dia.</div></div>';
+  return alertas.map(a=>`<div class="alert alert-${a.tipo}" style="margin-bottom:8px"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${a.ic}</svg><div style="flex:1">${a.txt}</div><button class="btn btn-o btn-xs" onclick="${a.acao}">${a.btn}</button></div>`).join('');
+}
+
 function buildDashAdmin(d,cont){
   const k=d.kpis, n1=APP.user.nome.split(' ')[0];
   const pctMeta=Math.min(parseFloat(k.pctMeta||0),999).toFixed(1);
   cont.innerHTML=`
   <div class="sdiv">Painel Executivo — ${saudacao().replace(',','')} ${n1}</div>
-  <div class="ai-panel" style="background:linear-gradient(135deg,#3730a3 0%,#4f46e5 50%,#7c3aed 100%);border-radius:var(--r-lg);padding:20px;color:#fff;margin-bottom:15px;position:relative;overflow:hidden">
-    <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06);right:-60px;top:-60px;pointer-events:none"></div>
-    <div style="font-family:var(--fd);font-size:.9rem;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>ID Assist — Análise Financeira por IA</div>
-    <div style="font-size:.73rem;opacity:.78;margin-bottom:12px;line-height:1.5">Faça perguntas sobre os dados financeiros. A IA analisa em tempo real com base nos seus lançamentos.</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-      <button class="ai-qbtn" onclick="perguntarIA('Como está o resultado financeiro deste mês?')">Resultado do mês</button>
-      <button class="ai-qbtn" onclick="perguntarIA('Qual convênio tem melhor desempenho?')">Melhor convênio</button>
-      <button class="ai-qbtn" onclick="perguntarIA('Há alguma guia em risco de vencimento?')">Guias em risco</button>
-      <button class="ai-qbtn" onclick="perguntarIA('Quem é o profissional com melhor desempenho?')">Top profissional</button>
-    </div>
-    <div class="ai-chat" id="ai-chat" style="background:rgba(0,0,0,.18);border-radius:var(--r-md);padding:13px;min-height:64px;margin-bottom:10px;max-height:200px;overflow-y:auto"><span style="opacity:.75;font-size:.78rem">Olá ${n1}! Posso analisar receitas, despesas, convênios ou tendências. O que você gostaria de saber?</span></div>
-    <div style="display:flex;gap:8px">
-      <input class="ai-input" id="ai-input" type="text" placeholder="Ex: Como está minha margem este mês?" onkeydown="if(event.key==='Enter')enviarIA()" style="flex:1;padding:9px 12px;border:1.5px solid rgba(255,255,255,.22);border-radius:var(--r-md);background:rgba(255,255,255,.1);color:#fff;font-size:.82rem">
-      <button class="ai-send" onclick="enviarIA()" style="padding:9px 14px;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:var(--r-md);cursor:pointer;font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Enviar</button>
-    </div>
+  <div class="panel" style="margin-bottom:15px">
+    <div class="ph"><span class="pt"><svg class="pt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Alertas Financeiros</span></div>
+    <div class="pb">${buildAlertasFinanceiros(d)}</div>
   </div>
   <div class="kpi-grid">
-    ${kpi('','<path d="M12 2v20M2 12h20"/>','Receita Total',fmt(k.totalReceita),'Convênios + Particular')}
-    ${kpi('teal',ICOS.conv,'Convênios',fmt(k.recConvenio),'Faturado no período')}
-    ${kpi('green',ICOS.part,'Particular',fmt(k.recParticular),'Recebido no período')}
+    ${kpi('','<path d="M12 2v20M2 12h20"/>','Faturado Total',fmt(k.totalFaturado),'Convênios + Particular')}
+    ${kpi('green',ICOS.part,'Recebido Total',fmt(k.totalRecebido),'Já em caixa')}
+    ${kpi('amber',ICOS.clock,'A Receber',fmt(k.totalAReceber),k.qtdGuiasPendentes+' guia(s) pendente(s)')}
     ${kpi('red',ICOS.desp,'Despesas',fmt(k.totalDespesas),'Total lançado')}
-    ${kpi(k.resultado>=0?'green':'red',ICOS.res,'Resultado',fmt(k.resultado),'Receita menos despesas')}
+    ${kpi(k.resultado>=0?'green':'red',ICOS.res,'Resultado',fmt(k.resultado),'Recebido menos despesas')}
+    ${kpi('red','<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>','Glosado',fmt(k.totalGlosado),'Valor glosado no período')}
     ${kpi('gold',ICOS.ticket,'Ticket Médio',fmt(k.ticketMedio),'Por atendimento particular')}
-    ${kpi('amber',ICOS.clock,'Guias Pendentes',k.qtdGuiasPendentes,'Aguardando pagamento')}
     ${kpi('purple',ICOS.target,'Meta Anual',pctMeta+'%','de R$ 1.200.000')}
   </div>
   <div class="page-sections">
@@ -1105,7 +1146,7 @@ function renderMiniRanking(){
   google.script.run.withSuccessHandler(res=>{
     if(!res.ok||!res.dados.length){w.innerHTML='<div style="font-size:.78rem;color:var(--text-3)">Sem dados no período.</div>';return;}
     const top=res.dados.slice(0,5), mx=top[0]?.valor_total||1;
-    w.innerHTML=top.map((p,i)=>`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:3px"><span><strong>${i+1}.</strong> ${san(p.nome)}</span><strong>${fmt(p.valor_total)}</strong></div><div class="prog-bar"><div class="prog-fill" style="width:${(p.valor_total/mx*100).toFixed(0)}%;background:${p.cor||CORES[i%CORES.length]}"></div></div></div>`).join('');
+    w.innerHTML=top.map((p,i)=>`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:3px"><span><strong>${i+1}.</strong> ${san(p.nome)}</span><strong>${fmt(p.valor_total)}</strong></div><div class="prog-bar"><div class="prog-fill" style="width:${(p.valor_total/mx*100).toFixed(0)}%;background:${p.cor||CORES[i%CORES.length]}"></div></div><div style="font-size:.68rem;color:var(--text-3);margin-top:2px">Comissão: ${fmt(p.comissao_total||0)}${p.avisos_comissao&&p.avisos_comissao.length?' · <span style="color:var(--amber)">'+p.avisos_comissao.length+' aviso(s)</span>':''}</div></div>`).join('');
   }).withFailureHandler(()=>{w.innerHTML='<div style="font-size:.78rem;color:var(--text-3)">Indisponível.</div>';}).getDesempenhoProfissionais({mes:el('filtro-mes').value},APP.user);
 }
 
@@ -1115,27 +1156,17 @@ function buildDashGestor(d,cont){
   const confHtml=conf.length>0?conf.slice(0,5).map(c=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-weight:600;font-size:.8rem">${san(c.usuario)}</div><div style="font-size:.7rem;color:var(--text-3)">${c.data}</div></div><span class="bdg ${c.pct>=80?'bdg-green':c.pct>=50?'bdg-amber':'bdg-red'}">${c.pct}%</span></div>`).join(''):'<div style="font-size:.78rem;color:var(--text-3);padding:12px 0">Nenhum envio de checklist hoje.</div>';
   cont.innerHTML=`
   <div class="sdiv">${saudacao().replace(',','')} ${n1} — Painel Financeiro</div>
-  <div class="ai-panel" style="background:linear-gradient(135deg,#3730a3 0%,#4f46e5 50%,#7c3aed 100%);border-radius:var(--r-lg);padding:20px;color:#fff;margin-bottom:15px;position:relative;overflow:hidden">
-    <div style="font-family:var(--fd);font-size:.9rem;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>ID Assist — Análise Financeira por IA</div>
-    <div style="font-size:.73rem;opacity:.78;margin-bottom:12px;line-height:1.5">Análise inteligente dos dados financeiros do Instituto da Dor.</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-      <button class="ai-qbtn" onclick="perguntarIA('Como está o resultado financeiro deste mês?')">Resultado do mês</button>
-      <button class="ai-qbtn" onclick="perguntarIA('Quais guias estão prestes a vencer?')">Guias a vencer</button>
-      <button class="ai-qbtn" onclick="perguntarIA('Como está o fluxo de caixa?')">Fluxo de caixa</button>
-    </div>
-    <div class="ai-chat" id="ai-chat" style="background:rgba(0,0,0,.18);border-radius:var(--r-md);padding:13px;min-height:64px;margin-bottom:10px;max-height:200px;overflow-y:auto"><span style="opacity:.75;font-size:.78rem">Olá! Posso ajudar com análises financeiras, convênios e tendências.</span></div>
-    <div style="display:flex;gap:8px">
-      <input class="ai-input" id="ai-input" type="text" placeholder="Pergunte sobre os dados financeiros..." onkeydown="if(event.key==='Enter')enviarIA()" style="flex:1;padding:9px 12px;border:1.5px solid rgba(255,255,255,.22);border-radius:var(--r-md);background:rgba(255,255,255,.1);color:#fff;font-size:.82rem">
-      <button class="ai-send" onclick="enviarIA()" style="padding:9px 14px;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:var(--r-md);cursor:pointer;font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Enviar</button>
-    </div>
+  <div class="panel" style="margin-bottom:15px">
+    <div class="ph"><span class="pt"><svg class="pt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Alertas Financeiros</span></div>
+    <div class="pb">${buildAlertasFinanceiros(d)}</div>
   </div>
   <div class="kpi-grid">
-    ${kpi('teal',ICOS.conv,'Convênios',fmt(k.recConvenio),'Faturado')}
-    ${kpi('green',ICOS.part,'Particular',fmt(k.recParticular),'Recebido')}
+    ${kpi('','<path d="M12 2v20M2 12h20"/>','Faturado Total',fmt(k.totalFaturado),'Convênios + Particular')}
+    ${kpi('green',ICOS.part,'Recebido Total',fmt(k.totalRecebido),'Já em caixa')}
+    ${kpi('amber',ICOS.clock,'A Receber',fmt(k.totalAReceber),k.qtdGuiasPendentes+' guia(s) pendente(s)')}
     ${kpi('red',ICOS.desp,'Despesas',fmt(k.totalDespesas),'Total')}
-    ${kpi(k.resultado>=0?'green':'red',ICOS.res,'Resultado',fmt(k.resultado),'Receita – Despesa')}
-    ${kpi('amber',ICOS.clock,'Guias Pendentes',k.qtdGuiasPendentes,'A receber')}
-    ${kpi('gold',ICOS.ticket,'Ticket Médio',fmt(k.ticketMedio),'Particular')}
+    ${kpi(k.resultado>=0?'green':'red',ICOS.res,'Resultado',fmt(k.resultado),'Recebido – Despesa')}
+    ${kpi('red','<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>','Glosado',fmt(k.totalGlosado),'No período')}
   </div>
   <div class="page-sections">
     <div class="panel"><div class="ph"><span class="pt">Entradas vs Saídas — Mensal</span></div><div class="pb" id="chart-mensal"></div></div>
@@ -1165,34 +1196,6 @@ function buildDashRecepcao(d,cont){
     </div>
   </div>
   <div class="alert alert-blue" style="margin-top:4px"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Lembre-se de enviar seu checklist diário antes de encerrar o expediente. Isso ajuda a gestora a acompanhar o andamento das atividades.</div></div>`;
-}
-
-// ================================================================
-//  AI
-// ================================================================
-function perguntarIA(q){const i=el('ai-input');if(i)i.value=q;enviarIA();}
-function enviarIA(){
-  const input=el('ai-input');
-  const q=input?input.value.trim():'';
-  if(!q)return;
-  const chat=el('ai-chat');
-  if(!chat)return;
-  input.value='';
-  chat.innerHTML+=`<div class="ai-msg user" style="margin-bottom:7px;padding:8px 11px;border-radius:8px;font-size:.79rem;line-height:1.5;background:rgba(255,255,255,.15);text-align:right">${san(q)}</div>`;
-  chat.innerHTML+=`<div id="ai-typing" style="display:flex;gap:4px;align-items:center;padding:8px 11px"><div style="width:6px;height:6px;background:rgba(255,255,255,.6);border-radius:50%;animation:aiDot 1.2s infinite"></div><div style="width:6px;height:6px;background:rgba(255,255,255,.6);border-radius:50%;animation:aiDot 1.2s infinite .2s"></div><div style="width:6px;height:6px;background:rgba(255,255,255,.6);border-radius:50%;animation:aiDot 1.2s infinite .4s"></div></div>`;
-  chat.scrollTop=chat.scrollHeight;
-  APP.aiHistory.push({role:'user',content:q});
-  const ctx=APP.dashCtx;
-  const ctxStr=ctx?`Dados do Instituto da Dor: Receita particular: ${fmt(ctx.kpis.recParticular)}, Convênios: ${fmt(ctx.kpis.recConvenio)}, Despesas: ${fmt(ctx.kpis.totalDespesas)}, Resultado: ${fmt(ctx.kpis.resultado)}, Guias pendentes: ${ctx.kpis.qtdGuiasPendentes}, Ticket médio: ${fmt(ctx.kpis.ticketMedio)}. Top convênios: ${Object.entries(ctx.porConvenio||{}).slice(0,4).map(([n,v])=>`${n}: ${fmt(v)}`).join(', ')}`:'';
-  google.script.run
-    .withSuccessHandler(resp=>{
-      const t=el('ai-typing');if(t)t.remove();
-      chat.innerHTML+=`<div class="ai-msg bot" style="margin-bottom:7px;padding:8px 11px;border-radius:8px;font-size:.79rem;line-height:1.5;background:rgba(0,0,0,.2)">${san(resp||'—')}</div>`;
-      chat.scrollTop=chat.scrollHeight;
-      APP.aiHistory.push({role:'assistant',content:resp});
-    })
-    .withFailureHandler(()=>{const t=el('ai-typing');if(t)t.remove();chat.innerHTML+='<div class="ai-msg bot" style="opacity:.6">Não foi possível processar. Tente novamente.</div>';})
-    .consultarIA(q,ctxStr,APP.aiHistory.slice(-6),APP.user);
 }
 
 // ================================================================
@@ -1422,12 +1425,16 @@ function buildDesempenhoPage(res,cont){
   const top=d[0];
   const mediaTicket=d.filter(x=>x.qtd_particular>0).reduce((s,x)=>s+x.ticket_medio,0)/(d.filter(x=>x.qtd_particular>0).length||1);
   const totalAtend=d.reduce((s,x)=>s+x.qtd_particular+x.qtd_convenio,0);
+  const totalComissao=d.reduce((s,x)=>s+(x.comissao_total||0),0);
+  const totalAvisos=d.reduce((s,x)=>s+(x.avisos_comissao?x.avisos_comissao.length:0),0);
   const mx=top.valor_total||1;
 
-  let html=`<div class="page-hd"><div><h2>Desempenho da Equipe</h2><div class="page-hd-sub">Faturamento, ticket médio e comparecimento por profissional · período selecionado no topo</div></div></div>
-  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+  let html=`<div class="page-hd"><div><h2>Desempenho da Equipe</h2><div class="page-hd-sub">Faturamento, comissão e comparecimento por profissional · período selecionado no topo</div></div></div>
+  ${totalAvisos>0?`<div class="alert alert-warn"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div>${totalAvisos} aviso(s) de comissão no período (ex.: profissional sem regra cadastrada em Regras_Comissao). Veja a coluna "Comissão" na tabela abaixo.</div></div>`:''}
+  <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr)">
     ${kpi('gold',ICOS.trofeu,'Top Profissional',san(top.nome.split(' ').slice(0,2).join(' ')),fmt(top.valor_total)+' faturados')}
     ${kpi('','<path d="M12 2v20M2 12h20"/>','Faturamento Total',fmt(res.totalGeral),totalAtend+' atendimentos')}
+    ${kpi('purple','<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>','Comissão Total',fmt(totalComissao),'A pagar à equipe')}
     ${kpi('teal',ICOS.ticket,'Ticket Médio Equipe',fmt(mediaTicket),'Média particular')}
     ${kpi('emerald',ICOS.target,'Profissionais Ativos',d.length,'Considerados no ranking')}
   </div>
@@ -1454,15 +1461,17 @@ function buildDesempenhoPage(res,cont){
   html+=`</div></div>
   <div class="panel">
     <div class="ph"><span class="pt">Detalhamento por Profissional</span></div>
-    <div class="tw"><table class="tbl"><thead><tr><th>Profissional</th><th>Particular</th><th>Convênio</th><th>Total</th><th>Ticket Médio</th><th>Atendimentos</th><th>Comparecimento</th></tr></thead><tbody>`;
+    <div class="tw"><table class="tbl"><thead><tr><th>Profissional</th><th>Particular</th><th>Convênio</th><th>Total</th><th>Comissão</th><th>Ticket Médio</th><th>Atendimentos</th><th>Comparecimento</th></tr></thead><tbody>`;
   d.forEach(p=>{
     const tc=p.taxa_comparecimento;
     const tcBdg = tc===null ? '<span class="bdg bdg-gray">Sem agenda</span>' : `<span class="bdg ${tc>=80?'bdg-green':tc>=50?'bdg-amber':'bdg-red'}">${tc}%</span>`;
+    const temAviso=p.avisos_comissao&&p.avisos_comissao.length;
     html+=`<tr>
       <td><strong>${san(p.nome)}</strong><div style="font-size:.68rem;color:var(--text-3)">${san(p.especialidade||'')}</div></td>
       <td>${fmt(p.valor_particular)} <span class="bdg bdg-gold" style="margin-left:3px">${p.qtd_particular}x</span></td>
       <td>${fmt(p.valor_convenio)} <span class="bdg bdg-teal" style="margin-left:3px">${p.qtd_convenio}x</span></td>
       <td style="font-weight:700">${fmt(p.valor_total)}</td>
+      <td style="font-weight:600;color:var(--purple)">${fmt(p.comissao_total||0)}${temAviso?` <span class="bdg bdg-amber" title="${san(p.avisos_comissao.join(' | '))}">!</span>`:''}</td>
       <td>${fmt(p.ticket_medio)}</td>
       <td>${p.qtd_atendimentos} <span style="color:var(--text-3);font-size:.7rem">(${p.faltou} faltas)</span></td>
       <td>${tcBdg}</td>
@@ -1766,6 +1775,266 @@ function carregarFluxo(){
     const tres=rows.reduce((s,r)=>s+r.res,0);
     w.innerHTML=`<div class="panel"><div class="ph"><span class="pt">Fluxo de Caixa — 2026</span></div><div class="alert alert-blue" style="margin:14px"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><div>Convênios pagam com 30–90 dias de atraso. Atualize o status das guias para refletir o caixa real.</div></div><div class="tw"><table class="tbl"><thead><tr><th>Mês</th><th>+ Particular</th><th>+ Convênios</th><th>= Receitas</th><th>– Despesas</th><th>Resultado</th><th>Acumulado</th></tr></thead><tbody>${rows.map(r=>`<tr><td><strong>${r.m}</strong></td><td style="color:var(--amber)">${r.p?fmt(r.p):'—'}</td><td style="color:var(--teal)">${r.c?fmt(r.c):'—'}</td><td style="font-weight:600">${r.t?fmt(r.t):'—'}</td><td style="color:var(--red)">${r.d?fmt(r.d):'—'}</td><td style="font-weight:700;color:${r.has?(r.res>=0?'var(--green)':'var(--red)'):'var(--text-3)'}">${r.has?fmt(r.res):'—'}</td><td style="font-weight:600">${r.ac?fmt(r.ac):'—'}</td></tr>`).join('')}</tbody><tfoot><tr><td><strong>TOTAL</strong></td><td><strong>${fmt(rows.reduce((s,r)=>s+r.p,0))}</strong></td><td><strong>${fmt(rows.reduce((s,r)=>s+r.c,0))}</strong></td><td><strong>${fmt(rows.reduce((s,r)=>s+r.t,0))}</strong></td><td><strong>${fmt(rows.reduce((s,r)=>s+r.d,0))}</strong></td><td style="color:${tres>=0?'var(--green)':'var(--red)'}"><strong>${fmt(tres)}</strong></td><td></td></tr></tfoot></table></div></div>`;
   });
+}
+
+// ================================================================
+//  LOTES / PROTOCOLOS
+// ================================================================
+const STATUS_LOTE_BDG = {Aberto:'bdg-gray',Enviado:'bdg-amber','Protocolado':'bdg-teal','Pago Parcial':'bdg-amber','Pago Total':'bdg-green',Glosado:'bdg-red'};
+function carregarLotes(){
+  const cont=el('page-lotes');
+  cont.innerHTML='<div class="lw"><div class="spin"></div><div class="lw-t">Carregando lotes...</div></div>';
+  google.script.run.withSuccessHandler(rows=>{
+    cont.innerHTML=`<div class="page-hd"><div><h2>Lotes / Protocolos</h2><div class="page-hd-sub">Acompanhamento do envio de lotes aos convênios até o recebimento</div></div><button class="btn btn-p btn-sm" onclick="modalNovoLote()">Novo Lote</button></div>
+    ${!rows||!rows.length?'<div class="alert alert-info">Nenhum lote cadastrado ainda.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Lote</th><th>Convênio</th><th>Fechamento</th><th>Envio</th><th>Prev. Receb.</th><th>Valor Total</th><th>Recebido</th><th>Glosado</th><th>Status</th><th></th></tr></thead><tbody>${rows.map(l=>`<tr>
+      <td><strong>${san(l.lote)}</strong></td><td>${san(l.convenio_nome)}</td><td>${l.data_fechamento||'—'}</td><td>${l.data_envio||'—'}</td><td>${l.data_prev_recebimento||'—'}</td>
+      <td style="font-weight:600">${fmt(l.valor_total_lote)}</td><td style="color:var(--green)">${fmt(l.valor_recebido)}</td><td style="color:var(--red)">${fmt(l.valor_glosado)}</td>
+      <td><span class="bdg ${STATUS_LOTE_BDG[l.status]||'bdg-gray'}">${san(l.status)}</span></td>
+      <td><button class="btn btn-g btn-xs" onclick="modalStatusLote('${l.id}','${san(l.status)}')">Atualizar</button></td>
+    </tr>`).join('')}</tbody></table></div></div>`}`;
+  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).getLotes({},APP.user);
+}
+function modalNovoLote(){
+  const opts=(APP.listas?.convenios||[]).map(c=>`<option value="${c.id}" data-n="${san(c.nome)}">${san(c.nome)}</option>`).join('');
+  abrirModal('Novo Lote',`<div class="fg fg2">
+    <div class="ff"><label>Convênio <span class="req">*</span></label><select id="lt-conv"><option value="">Selecione...</option>${opts}</select></div>
+    <div class="ff"><label>Nº do Lote</label><input type="text" id="lt-num" placeholder="ex: 99"></div>
+    <div class="ff"><label>Data de Fechamento</label><input type="date" id="lt-fecha" value="${today()}"></div>
+    <div class="ff"><label>Data de Envio</label><input type="date" id="lt-envio"></div>
+    <div class="ff"><label>Prev. Recebimento</label><input type="date" id="lt-prev"></div>
+    <div class="ff"><label>Observação</label><input type="text" id="lt-obs"></div>
+  </div>`,`<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="salvarNovoLote()">Criar Lote</button>`);
+}
+function salvarNovoLote(){
+  const cs=el('lt-conv');
+  if(!cs.value){toast('Selecione o convênio.','err');return;}
+  const dados={convenio_id:cs.value,convenio_nome:cs.options[cs.selectedIndex]?.dataset?.n||'',lote:el('lt-num').value,data_fechamento:el('lt-fecha').value,data_envio:el('lt-envio').value,data_prev_recebimento:el('lt-prev').value,observacao:san(el('lt-obs').value)};
+  google.script.run.withSuccessHandler(res=>{fecharModal();if(res.ok){toast('Lote criado!','ok');carregarLotes();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>toast(e.message,'err')).criarLote(dados,APP.user);
+}
+function modalStatusLote(id,statusAtual){
+  const opts=['Aberto','Enviado','Protocolado','Pago Parcial','Pago Total','Glosado'].map(s=>`<option value="${s}" ${s===statusAtual?'selected':''}>${s}</option>`).join('');
+  abrirModal('Atualizar Status do Lote',`<div class="fg fg2">
+    <div class="ff"><label>Status</label><select id="lt-st">${opts}</select></div>
+    <div class="ff"><label>Valor Recebido (R$)</label><input type="number" id="lt-vr" step="0.01" min="0"></div>
+    <div class="ff"><label>Valor Glosado (R$)</label><input type="number" id="lt-vg" step="0.01" min="0"></div>
+  </div>`,`<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="confirmarStatusLote('${id}')">Salvar</button>`);
+}
+function confirmarStatusLote(id){
+  const st=el('lt-st').value,vr=parseFloat(el('lt-vr').value||0),vg=parseFloat(el('lt-vg').value||0);
+  google.script.run.withSuccessHandler(res=>{fecharModal();if(res.ok){toast('Status do lote atualizado!','ok');carregarLotes();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>toast(e.message,'err')).atualizarStatusLote(id,st,vr,vg,APP.user);
+}
+
+// ================================================================
+//  GLOSAS
+// ================================================================
+function carregarGlosas(){
+  const cont=el('page-glosas');
+  cont.innerHTML='<div class="lw"><div class="spin"></div><div class="lw-t">Carregando glosas...</div></div>';
+  google.script.run.withSuccessHandler(rows=>{
+    const tot=(rows||[]).reduce((s,g)=>s+parseFloat(g.valor_glosado||0),0);
+    const abertas=(rows||[]).filter(g=>g.status==='Aberta').length;
+    cont.innerHTML=`<div class="page-hd"><div><h2>Glosas</h2><div class="page-hd-sub">Registro e acompanhamento de valores glosados por convênio</div></div><button class="btn btn-p btn-sm" onclick="modalNovaGlosa()">Registrar Glosa</button></div>
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      ${kpi('red','<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>','Total Glosado',fmt(tot),(rows||[]).length+' registro(s)')}
+      ${kpi('amber',ICOS.clock,'Glosas Abertas',abertas,'Aguardando recurso')}
+      ${kpi('green','<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>','Revertidas',(rows||[]).filter(g=>g.status==='Revertida').length,'Recurso aceito')}
+    </div>
+    ${!rows||!rows.length?'<div class="alert alert-info">Nenhuma glosa registrada.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Guia</th><th>Convênio</th><th>Data</th><th>Valor</th><th>Motivo</th><th>Status</th><th></th></tr></thead><tbody>${rows.map(g=>`<tr>
+      <td><code>${g.guia_id}</code></td><td><strong>${san(g.convenio_nome)}</strong></td><td>${g.data_glosa||'—'}</td>
+      <td style="font-weight:600;color:var(--red)">${fmt(g.valor_glosado)}</td><td>${san(g.motivo)}</td>
+      <td><span class="bdg ${g.status==='Revertida'?'bdg-green':g.status==='Mantida'?'bdg-red':g.status==='Recorrida'?'bdg-teal':'bdg-amber'}">${san(g.status)}</span></td>
+      <td><button class="btn btn-g btn-xs" onclick="modalStatusGlosa('${g.id}','${san(g.status)}')">Atualizar</button></td>
+    </tr>`).join('')}</tbody></table></div></div>`}`;
+  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).getGlosas({},APP.user);
+}
+function modalNovaGlosa(){
+  abrirModal('Registrar Glosa',`<div class="fg fg2">
+    <div class="ff"><label>ID da Guia <span class="req">*</span></label><input type="text" id="gl-guia" placeholder="ex: GUIA1234567890"></div>
+    <div class="ff"><label>Convênio</label><input type="text" id="gl-conv" placeholder="Nome do convênio"></div>
+    <div class="ff"><label>Data da Glosa</label><input type="date" id="gl-data" value="${today()}"></div>
+    <div class="ff"><label>Valor Glosado (R$) <span class="req">*</span></label><input type="number" id="gl-val" step="0.01" min="0"></div>
+    <div class="ff" style="grid-column:1/-1"><label>Motivo <span class="req">*</span></label><input type="text" id="gl-mot" placeholder="ex: Divergência de código"></div>
+  </div>`,`<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="salvarNovaGlosa()">Registrar</button>`);
+}
+function salvarNovaGlosa(){
+  const dados={guia_id:san(el('gl-guia').value),convenio_nome:san(el('gl-conv').value),data_glosa:el('gl-data').value,valor_glosado:el('gl-val').value,motivo:san(el('gl-mot').value)};
+  if(!dados.guia_id||!dados.valor_glosado||!dados.motivo){toast('Preencha guia, valor e motivo.','err');return;}
+  google.script.run.withSuccessHandler(res=>{fecharModal();if(res.ok){toast('Glosa registrada!','ok');carregarGlosas();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>toast(e.message,'err')).salvarGlosa(dados,APP.user);
+}
+function modalStatusGlosa(id,statusAtual){
+  const opts=['Aberta','Recorrida','Mantida','Revertida'].map(s=>`<option value="${s}" ${s===statusAtual?'selected':''}>${s}</option>`).join('');
+  abrirModal('Atualizar Status da Glosa',`<div class="ff"><label>Status</label><select id="gl-st">${opts}</select></div>`,
+  `<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="confirmarStatusGlosa('${id}')">Salvar</button>`);
+}
+function confirmarStatusGlosa(id){
+  google.script.run.withSuccessHandler(res=>{fecharModal();if(res.ok){toast('Status atualizado!','ok');carregarGlosas();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>toast(e.message,'err')).atualizarStatusGlosa(id,el('gl-st').value,APP.user);
+}
+
+// ================================================================
+//  CONFERÊNCIA DE PRAZOS
+// ================================================================
+function carregarConferencia(){
+  const cont=el('page-conferencia');
+  cont.innerHTML='<div class="lw"><div class="spin"></div><div class="lw-t">Conferindo prazos...</div></div>';
+  google.script.run.withSuccessHandler(res=>{
+    if(!res.ok){cont.innerHTML=`<div class="alert alert-err">${san(res.msg||'Erro ao carregar.')}</div>`;return;}
+    const rows=res.resultado||[];
+    const critico=rows.filter(r=>r.conferencia==='EM ATRASO CRÍTICO').length;
+    const atraso=rows.filter(r=>r.conferencia==='EM ATRASO').length;
+    cont.innerHTML=`<div class="page-hd"><div><h2>Conferência de Prazos de Recebimento</h2><div class="page-hd-sub">Compara o previsto com o real, aplicando tolerância para convênios historicamente lentos</div></div></div>
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      ${kpi('red',ICOS.clock,'Atraso Crítico',critico,'Fora da tolerância')}
+      ${kpi('amber',ICOS.clock,'Em Atraso',atraso,'Dentro do limite de atenção')}
+      ${kpi('teal',ICOS.conv,'Guias Conferidas',rows.length,'No total')}
+    </div>
+    ${!rows.length?'<div class="alert alert-info">Nenhuma guia pendente de conferência.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Guia</th><th>Convênio</th><th>Valor</th><th>Data Prevista</th><th>Dias em Atraso</th><th>Situação</th></tr></thead><tbody>${rows.map(r=>{
+      if(typeof r==='string'||!r.conferencia)return'';
+      const cls=r.conferencia==='EM ATRASO CRÍTICO'?'bdg-red':r.conferencia==='EM ATRASO'?'bdg-amber':'bdg-green';
+      return`<tr><td><code>${r.guia_id}</code></td><td><strong>${san(r.convenio_nome)}</strong></td><td>${fmt(r.valor_total)}</td><td>${r.data_prevista}</td><td>${r.dias_atraso}d</td><td><span class="bdg ${cls}">${r.conferencia}</span></td></tr>`;
+    }).join('')}</tbody></table></div></div>`}`;
+  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).conferirPrazosRecebimento({mes:el('filtro-mes').value},APP.user);
+}
+
+// ================================================================
+//  PROJEÇÃO DE RECEBIMENTOS
+// ================================================================
+function carregarProjecao(){
+  const cont=el('page-projecao');
+  cont.innerHTML='<div class="lw"><div class="spin"></div><div class="lw-t">Calculando projeção...</div></div>';
+  google.script.run.withSuccessHandler(res=>{
+    if(!res.ok){cont.innerHTML=`<div class="alert alert-err">${san(res.msg||'Erro ao carregar.')}</div>`;return;}
+    const rows=res.projecao||[];
+    cont.innerHTML=`<div class="page-hd"><div><h2>Projeção de Recebimentos</h2><div class="page-hd-sub">Guias ainda não pagas, ordenadas pelo prazo previsto de recebimento</div></div></div>
+    <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr)">
+      ${kpi('teal',ICOS.money,'Total Projetado',fmt(res.totalProjetado),rows.length+' guia(s)')}
+      ${kpi('red',ICOS.clock,'Total Atrasado',fmt(res.totalAtrasado),'Já fora do prazo previsto')}
+    </div>
+    ${!rows.length?'<div class="alert alert-info">Nenhuma guia pendente.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Guia</th><th>Convênio</th><th>Paciente</th><th>Valor</th><th>Prev.</th><th>Situação</th></tr></thead><tbody>${rows.map(p=>{
+      const cls=p.situacao==='ATRASADO'?'bdg-red':p.situacao==='PRÓXIMO'?'bdg-amber':p.situacao==='NO PRAZO'?'bdg-green':'bdg-gray';
+      return`<tr><td><code>${p.guia_id}</code></td><td><strong>${san(p.convenio_nome)}</strong></td><td>${san(p.paciente_nome)}</td><td style="font-weight:600">${fmt(p.valor_total)}</td><td>${p.data_prevista}</td><td><span class="bdg ${cls}">${p.situacao}${p.dias_restantes!==null?' ('+p.dias_restantes+'d)':''}</span></td></tr>`;
+    }).join('')}</tbody></table></div></div>`}`;
+  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).getProjecaoRecebimentos({mes:el('filtro-mes').value},APP.user);
+}
+
+// ================================================================
+//  REGRAS DE CONVÊNIO
+// ================================================================
+const TIPOS_FAT_LBL = {FIXO:'Dia Fixo do Mês',CONDICIONAL:'Condicional (dia de corte)',ULTIMO_DIA_UTIL:'Último Dia Útil',IMEDIATO:'Imediato'};
+function carregarRegrasConvenio(){
+  const cont=el('page-regras-convenio');
+  cont.innerHTML='<div class="lw"><div class="spin"></div></div>';
+  google.script.run.withSuccessHandler(rows=>{
+    cont.innerHTML=`<div class="page-hd"><div><h2>Regras de Faturamento por Convênio</h2><div class="page-hd-sub">Define como cada convênio fatura, quando o lote é enviado e o prazo até o recebimento</div></div></div>
+    <div class="alert alert-blue"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><div>Editar aqui muda automaticamente o cálculo de datas de novas guias — não afeta guias já lançadas.</div></div>
+    ${!rows||!rows.length?'<div class="alert alert-info">Nenhuma regra cadastrada. Rode migrarV6() na planilha para popular a partir dos convênios existentes.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Convênio</th><th>Tipo</th><th>Dia Fixo</th><th>Dia Corte</th><th>Envio (d.u.)</th><th>Receb. (dias)</th><th>Atraso Freq.</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr>
+      <td><strong>${san(r.convenio_nome)}</strong></td><td>${TIPOS_FAT_LBL[r.tipo_faturamento]||r.tipo_faturamento||'<span class="bdg bdg-amber">Não configurado</span>'}</td>
+      <td>${r.dia_fixo||'—'}</td><td>${r.dia_corte||'—'}</td><td>${r.prazo_envio_dias_uteis||0}</td><td>${r.prazo_recebimento_dias||0}</td>
+      <td>${r.atraso_frequente==='SIM'?'<span class="bdg bdg-amber">Sim</span>':'Não'}</td>
+      <td><button class="btn btn-g btn-xs" onclick='modalEditarRegraConvenio(${JSON.stringify(r).replace(/'/g,"&apos;")})'>Editar</button></td>
+    </tr>`).join('')}</tbody></table></div></div>`}`;
+  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).getRegrasConvenio(APP.user);
+}
+function modalEditarRegraConvenio(r){
+  abrirModal(`Editar Regra — ${san(r.convenio_nome)}`,`<div class="fg fg2">
+    <input type="hidden" id="rc-id" value="${r.convenio_id}"><input type="hidden" id="rc-nome" value="${san(r.convenio_nome)}">
+    <div class="ff"><label>Tipo de Faturamento</label><select id="rc-tipo">
+      <option value="FIXO" ${r.tipo_faturamento==='FIXO'?'selected':''}>Dia Fixo do Mês</option>
+      <option value="CONDICIONAL" ${r.tipo_faturamento==='CONDICIONAL'?'selected':''}>Condicional (dia de corte)</option>
+      <option value="ULTIMO_DIA_UTIL" ${r.tipo_faturamento==='ULTIMO_DIA_UTIL'?'selected':''}>Último Dia Útil</option>
+      <option value="IMEDIATO" ${r.tipo_faturamento==='IMEDIATO'?'selected':''}>Imediato</option>
+    </select></div>
+    <div class="ff"><label>Dia Fixo (1-31)</label><input type="number" id="rc-diafixo" min="1" max="31" value="${r.dia_fixo||''}"></div>
+    <div class="ff"><label>Dia de Corte</label><input type="number" id="rc-diacorte" min="1" max="31" value="${r.dia_corte||''}"></div>
+    <div class="ff"><label>Prazo de Envio (dias úteis)</label><input type="number" id="rc-envio" min="0" value="${r.prazo_envio_dias_uteis||0}"></div>
+    <div class="ff"><label>Prazo de Recebimento (dias corridos)</label><input type="number" id="rc-receb" min="0" value="${r.prazo_recebimento_dias||0}"></div>
+    <div class="ff"><label>Atraso Frequente?</label><select id="rc-atraso"><option value="NÃO" ${r.atraso_frequente!=='SIM'?'selected':''}>Não</option><option value="SIM" ${r.atraso_frequente==='SIM'?'selected':''}>Sim</option></select></div>
+    <div class="ff" style="grid-column:1/-1"><label>Observação</label><input type="text" id="rc-obs" value="${san(r.observacao||'')}"></div>
+  </div>`,`<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="salvarEdicaoRegraConvenio()">Salvar</button>`);
+}
+function salvarEdicaoRegraConvenio(){
+  const dados={convenio_id:el('rc-id').value,convenio_nome:el('rc-nome').value,tipo_faturamento:el('rc-tipo').value,dia_fixo:el('rc-diafixo').value,dia_corte:el('rc-diacorte').value,prazo_envio_dias_uteis:el('rc-envio').value,prazo_recebimento_dias:el('rc-receb').value,atraso_frequente:el('rc-atraso').value,ativo:'SIM',observacao:san(el('rc-obs').value)};
+  google.script.run.withSuccessHandler(res=>{fecharModal();if(res.ok){toast('Regra atualizada!','ok');carregarRegrasConvenio();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>toast(e.message,'err')).salvarRegraConvenio(dados,APP.user);
+}
+
+// ================================================================
+//  REGRAS DE COMISSÃO
+// ================================================================
+function carregarRegrasComissao(){
+  const cont=el('page-regras-comissao');
+  cont.innerHTML='<div class="lw"><div class="spin"></div></div>';
+  google.script.run.withSuccessHandler(rows=>{
+    const semRegra=(rows||[]).filter(r=>parseFloat(r.percentual_a||0)===0&&r.tipo_remuneracao!=='FIXO');
+    cont.innerHTML=`<div class="page-hd"><div><h2>Regras de Comissão por Profissional</h2><div class="page-hd-sub">Percentual ou valor fixo pago a cada profissional, por categoria de serviço</div></div></div>
+    ${semRegra.length?`<div class="alert alert-warn"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div>${semRegra.length} profissional(is) com comissão em 0% — configure antes de fechar o próximo faturamento.</div></div>`:''}
+    ${!rows||!rows.length?'<div class="alert alert-info">Nenhuma regra cadastrada.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Profissional</th><th>Vínculo</th><th>Remuneração</th><th>Categoria A</th><th>% / R$ A</th><th>Categoria B</th><th>% / R$ B</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr>
+      <td><strong>${san(r.profissional_nome)}</strong></td><td><span class="bdg bdg-blue">${r.tipo_vinculo}</span></td>
+      <td>${r.tipo_remuneracao==='FIXO'?'Fixo '+fmt(r.valor_fixo_mensal):'Variável'}</td>
+      <td>${san(r.categoria_a_nome||'Todos')}</td><td>${r.percentual_a}${r.unidade_a==='R$'?' R$':'%'}</td>
+      <td>${san(r.categoria_b_nome||'—')}</td><td>${r.categoria_b_nome?r.percentual_b+(r.unidade_b==='R$'?' R$':'%'):'—'}</td>
+      <td><button class="btn btn-g btn-xs" onclick='modalEditarRegraComissao(${JSON.stringify(r).replace(/'/g,"&apos;")})'>Editar</button></td>
+    </tr>`).join('')}</tbody></table></div></div>`}`;
+  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).getRegrasComissao(APP.user);
+}
+function modalEditarRegraComissao(r){
+  abrirModal(`Editar Comissão — ${san(r.profissional_nome)}`,`<div class="fg fg2">
+    <input type="hidden" id="rco-id" value="${r.profissional_id}"><input type="hidden" id="rco-nome" value="${san(r.profissional_nome)}">
+    <div class="ff"><label>Tipo de Vínculo</label><select id="rco-vinc"><option value="PJ" ${r.tipo_vinculo==='PJ'?'selected':''}>PJ</option><option value="CLT" ${r.tipo_vinculo==='CLT'?'selected':''}>CLT</option></select></div>
+    <div class="ff"><label>Remuneração</label><select id="rco-remun"><option value="VARIAVEL" ${r.tipo_remuneracao==='VARIAVEL'?'selected':''}>Variável</option><option value="FIXO" ${r.tipo_remuneracao==='FIXO'?'selected':''}>Fixo</option></select></div>
+    <div class="ff"><label>Valor Fixo Mensal (R$)</label><input type="number" id="rco-fixo" step="0.01" min="0" value="${r.valor_fixo_mensal||0}"></div>
+    <div class="ff"><label>Fixo também recebe % por guia?</label><select id="rco-fixocom"><option value="NÃO" ${r.fixo_recebe_comissao_guia!=='SIM'?'selected':''}>Não</option><option value="SIM" ${r.fixo_recebe_comissao_guia==='SIM'?'selected':''}>Sim</option></select></div>
+    <div class="ff"><label>Categoria A — Nome</label><input type="text" id="rco-catA" value="${san(r.categoria_a_nome||'Todos')}"></div>
+    <div class="ff"><label>Categoria A — Códigos</label><input type="text" id="rco-codA" value="${san(r.categoria_a_codigos||'Todos')}" placeholder="ex: FISIO.M,DTM"></div>
+    <div class="ff"><label>% ou R$ Categoria A</label><input type="number" id="rco-pctA" step="0.01" min="0" value="${r.percentual_a||0}"></div>
+    <div class="ff"><label>Unidade A</label><select id="rco-uniA"><option value="%" ${r.unidade_a!=='R$'?'selected':''}>% (percentual)</option><option value="R$" ${r.unidade_a==='R$'?'selected':''}>R$ (fixo por atendimento)</option></select></div>
+    <div class="ff"><label>Categoria B — Nome</label><input type="text" id="rco-catB" value="${san(r.categoria_b_nome||'')}"></div>
+    <div class="ff"><label>Categoria B — Códigos</label><input type="text" id="rco-codB" value="${san(r.categoria_b_codigos||'')}"></div>
+    <div class="ff"><label>% ou R$ Categoria B</label><input type="number" id="rco-pctB" step="0.01" min="0" value="${r.percentual_b||0}"></div>
+    <div class="ff"><label>Unidade B</label><select id="rco-uniB"><option value="%" ${r.unidade_b!=='R$'?'selected':''}>% (percentual)</option><option value="R$" ${r.unidade_b==='R$'?'selected':''}>R$ (fixo por atendimento)</option></select></div>
+    <div class="ff"><label>Variação por Serviço (usa A/B)?</label><select id="rco-varserv"><option value="NÃO" ${r.variacao_por_servico!=='SIM'?'selected':''}>Não</option><option value="SIM" ${r.variacao_por_servico==='SIM'?'selected':''}>Sim</option></select></div>
+  </div>`,`<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="salvarEdicaoRegraComissao()">Salvar</button>`);
+}
+function salvarEdicaoRegraComissao(){
+  const dados={profissional_id:el('rco-id').value,profissional_nome:el('rco-nome').value,tipo_vinculo:el('rco-vinc').value,tipo_remuneracao:el('rco-remun').value,valor_fixo_mensal:el('rco-fixo').value,fixo_recebe_comissao_guia:el('rco-fixocom').value,variacao_por_servico:el('rco-varserv').value,categoria_a_nome:el('rco-catA').value,categoria_a_codigos:el('rco-codA').value,percentual_a:el('rco-pctA').value,unidade_a:el('rco-uniA').value,categoria_b_nome:el('rco-catB').value,categoria_b_codigos:el('rco-codB').value,percentual_b:el('rco-pctB').value,unidade_b:el('rco-uniB').value,ativo:'SIM'};
+  google.script.run.withSuccessHandler(res=>{if(res.ok){fecharModal();toast('Regra de comissão atualizada!','ok');carregarRegrasComissao();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>toast(e.message,'err')).salvarRegraComissao(dados,APP.user);
+}
+
+// ================================================================
+//  DESPESAS RECORRENTES
+// ================================================================
+function carregarDespesasRecorrentes(){
+  const cont=el('page-despesas-recorrentes');
+  cont.innerHTML='<div class="lw"><div class="spin"></div></div>';
+  google.script.run.withSuccessHandler(rows=>{
+    const totalFixo=(rows||[]).filter(r=>r.tipo==='FIXO'&&r.ativo==='SIM').reduce((s,r)=>s+parseFloat(r.valor_padrao||0),0);
+    cont.innerHTML=`<div class="page-hd"><div><h2>Despesas Recorrentes</h2><div class="page-hd-sub">Aluguel, folha, impostos e outras despesas que se repetem todo mês</div></div>
+      <button class="btn btn-o btn-sm" onclick="modalGerarMes()">Gerar Mês</button></div>
+    <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr)">
+      ${kpi('red',ICOS.desp,'Total Fixo Mensal',fmt(totalFixo),(rows||[]).filter(r=>r.ativo==='SIM').length+' recorrência(s) ativa(s)')}
+      ${kpi('amber',ICOS.clock,'Variáveis (sem valor fixo)',(rows||[]).filter(r=>r.tipo==='VARIAVEL'&&r.ativo==='SIM').length,'Preenchidas manualmente no mês')}
+    </div>
+    ${!rows||!rows.length?'<div class="alert alert-info">Nenhuma despesa recorrente cadastrada.</div>':`<div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Descrição</th><th>Categoria</th><th>Tipo</th><th>Valor Padrão</th><th>Vencimento</th><th>Ativo</th></tr></thead><tbody>${rows.map(r=>`<tr>
+      <td><strong>${san(r.descricao)}</strong>${r.observacao?`<div style="font-size:.68rem;color:var(--text-3)">${san(r.observacao)}</div>`:''}</td>
+      <td>${san(r.categoria)}</td><td><span class="bdg ${r.tipo==='FIXO'?'bdg-teal':'bdg-amber'}">${r.tipo}</span></td>
+      <td>${r.tipo==='FIXO'?fmt(r.valor_padrao):'—'}</td><td><code>${r.regra_vencimento}</code></td>
+      <td>${r.ativo==='SIM'?'<span class="bdg bdg-green">Ativo</span>':'<span class="bdg bdg-gray">Inativo</span>'}</td>
+    </tr>`).join('')}</tbody></table></div></div>`}`;
+  }).withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;}).getDespesasRecorrentes(APP.user);
+}
+function modalGerarMes(){
+  const hoje=new Date();
+  abrirModal('Gerar Despesas do Mês',`<div class="fg fg2">
+    <div class="ff"><label>Mês</label><select id="gm-mes">${Array.from({length:12},(_,i)=>`<option value="${i}" ${i===hoje.getMonth()?'selected':''}>${MESES[i]}</option>`).join('')}</select></div>
+    <div class="ff"><label>Ano</label><input type="number" id="gm-ano" value="${hoje.getFullYear()}"></div>
+  </div><div class="alert alert-blue" style="margin-top:10px"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><div>Gera automaticamente todas as despesas recorrentes ativas para o mês escolhido. Não duplica se já tiver sido gerado.</div></div>`,
+  `<button class="btn btn-g btn-sm" onclick="fecharModal()">Cancelar</button><button class="btn btn-p btn-sm" onclick="confirmarGerarMes()">Gerar</button>`);
+}
+function confirmarGerarMes(){
+  const ano=parseInt(el('gm-ano').value),mes=parseInt(el('gm-mes').value);
+  google.script.run.withSuccessHandler(res=>{
+    fecharModal();
+    if(res.ok){toast(`${res.geradas.length} despesa(s) gerada(s), ${res.puladas.length} pulada(s) (já existiam).`,'ok');}
+    else toast('Erro: '+san(res.msg),'err');
+  }).withFailureHandler(e=>toast(e.message,'err')).gerarDespesasDoMes(ano,mes,APP.user);
 }
 
 // ================================================================

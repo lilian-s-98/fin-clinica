@@ -531,6 +531,9 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
         <div class="nav-item" data-page="desempenho" onclick="goPage('desempenho')">
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>Desempenho da Equipe
         </div>
+        <div class="nav-item" data-page="curva-abc" onclick="goPage('curva-abc')">
+          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.1-2.8-2.8L7 14"/></svg>Curva ABC
+        </div>
       </div>
       <div class="nav-sec nav-cad" style="display:none">
         <div class="nav-lbl">Cadastros</div>
@@ -611,6 +614,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
     <section class="page" id="page-conformidade"></section>
     <section class="page" id="page-checklist-config"></section>
     <section class="page" id="page-desempenho"></section>
+    <section class="page" id="page-curva-abc"></section>
 
     <!-- NOVO PARTICULAR -->
     <section class="page" id="page-novo-particular">
@@ -788,6 +792,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
         <button class="tab-btn active" data-tab="fat-resumo" onclick="switchTab('faturamento','fat-resumo')">Resumo por Convênio</button>
         <button class="tab-btn" data-tab="fat-prazos" onclick="switchTab('faturamento','fat-prazos')">Conferência de Prazos</button>
         <button class="tab-btn" data-tab="fat-regras" onclick="switchTab('faturamento','fat-regras')">Regras de Faturamento</button>
+        <button class="tab-btn" data-tab="fat-outras" onclick="switchTab('faturamento','fat-outras')">Outras Receitas</button>
       </div>
       <div class="tab-pane active" id="fat-resumo">
         <div id="fat-resumo-lw" class="lw"><div class="spin"></div><div class="lw-t">Carregando resumo...</div></div>
@@ -803,6 +808,31 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
         <div id="fat-regras-lw" class="lw"><div class="spin"></div><div class="lw-t">Carregando regras...</div></div>
         <div id="fat-regras-cont" style="display:none"></div>
       </div>
+      <div class="tab-pane" id="fat-outras">
+        <div class="alert alert-blue"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Fontes de receita recorrente que não são convênio nem particular — ex.: aluguel de espaço ou equipamento cobrado de um profissional (como a piscina). Cadastre aqui, e gere o lançamento do mês com um clique, do mesmo jeito que já funciona para despesas recorrentes.</div></div>
+        <div class="page-hd" style="padding:0 0 12px"><span></span><button class="btn btn-p btn-sm" onclick="abrirFormReceitaRecorrente()">Nova Receita Recorrente</button></div>
+        <div id="form-receita-recorrente" class="panel" style="display:none;margin-bottom:14px">
+          <div class="ph"><span class="pt">Nova Receita Recorrente</span></div>
+          <div class="pb">
+            <div class="fg fg2">
+              <div class="ff"><label>Descrição <span class="req">*</span></label><input type="text" id="rr-desc" placeholder="Ex: Aluguel de Espaço — Piscina"></div>
+              <div class="ff"><label>Categoria</label><input type="text" id="rr-cat" placeholder="Ex: Aluguel de Espaço" value="Aluguel de Espaço"></div>
+            </div>
+            <div class="fg fg2">
+              <div class="ff"><label>Pagador (profissional)</label><select id="rr-prof"><option value="">Nenhum / outro pagador</option></select></div>
+              <div class="ff"><label>Valor Mensal (R$) <span class="req">*</span></label><input type="number" id="rr-valor" step="0.01" min="0" placeholder="0,00"></div>
+            </div>
+            <div class="fg fg2">
+              <div class="ff"><label>Regra de Vencimento</label><select id="rr-venc"><option value="MANUAL">Sem data automática (MANUAL)</option><option value="DIA_5">Todo dia 5</option><option value="DIA_10">Todo dia 10</option><option value="DIA_15">Todo dia 15</option><option value="DIA_20">Todo dia 20</option><option value="ATE_5_DU">Até o 5º dia útil</option></select></div>
+              <div class="ff"><label>Forma de Pagamento</label><select id="rr-forma"><option>PIX</option><option>DÉBITO</option><option>CRÉDITO</option><option>ESPÉCIE</option><option>TRANSFERÊNCIA</option></select></div>
+            </div>
+            <div class="ff"><label>Observação</label><input type="text" id="rr-obs" placeholder="Opcional"></div>
+            <div class="form-actions"><button class="btn btn-g btn-sm" onclick="el('form-receita-recorrente').style.display='none'">Cancelar</button><button class="btn btn-p btn-sm" onclick="salvarReceitaRecorrenteForm()">Salvar</button></div>
+          </div>
+        </div>
+        <div id="rr-lw" class="lw"><div class="spin"></div><div class="lw-t">Carregando receitas recorrentes...</div></div>
+        <div id="rr-cont" style="display:none"></div>
+      </div>
     </section>
 
     <!-- CONFIG FINANCEIRA (taxas de cartão + tabela de preços) -->
@@ -811,17 +841,30 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
       <div class="tabs">
         <button class="tab-btn active" data-tab="cf-precos" onclick="switchTab('config-financeira','cf-precos')">Preços por Pacote</button>
         <button class="tab-btn" data-tab="cf-taxas" onclick="switchTab('config-financeira','cf-taxas')">Taxas de Cartão</button>
+        <button class="tab-btn" data-tab="cf-taxa-guia" onclick="switchTab('config-financeira','cf-taxa-guia')">Taxa de Guia por Faixa</button>
       </div>
       <div class="tab-pane active" id="cf-precos">
         <div class="alert alert-blue"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Preço bruto (cheio) por serviço e tipo de pacote. Se o pagamento for à vista, aplique o desconto manualmente na hora do lançamento — este valor é a referência de tabela, não o valor final obrigatório.</div></div>
         <div class="panel"><div class="pb"><div class="price-tbl-wrap"><table class="tbl" id="cf-precos-tbl"></table></div>
           <div class="form-actions"><button class="btn btn-p btn-sm" onclick="salvarPrecosPacote()"><svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Tabela de Preços</button></div>
         </div></div>
+        <div class="alert alert-blue" style="margin-top:16px"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div><strong>Pilates</strong> tem preço próprio, porque varia por plano (mensal/trimestral/semestral) e por frequência semanal (1x/2x/3x), não só por pacote simples. Configure abaixo, separadamente da tabela acima.</div></div>
+        <div class="panel"><div class="ph"><span class="pt">Pilates — Matriz de Preços (Clínica e Casa/Home)</span></div><div class="pb"><div id="cf-matriz-pilates"></div>
+          <div class="form-actions"><button class="btn btn-p btn-sm" onclick="salvarMatrizPilates()"><svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Matriz do Pilates</button></div>
+        </div></div>
       </div>
       <div class="tab-pane" id="cf-taxas">
         <div class="alert alert-warn"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><strong>Débito</strong> tem taxa única. <strong>Crédito</strong> varia por número de parcelas — quanto mais parcelas, maior a taxa. Se você <strong>antecipar o recebimento</strong> (receber tudo de uma vez em vez de esperar as parcelas), a maquininha cobra uma taxa extra por isso — configure abaixo. Preencha com os valores reais do seu contrato de cada maquininha.</div></div>
         <div id="cf-taxas-cont"></div>
         <div class="form-actions"><button class="btn btn-p btn-sm" onclick="salvarTaxasCartao()"><svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Taxas</button></div>
+      </div>
+      <div class="tab-pane" id="cf-taxa-guia">
+        <div class="alert alert-warn"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div>Configuração de referência para a taxa cobrada por faixa de quantidade de sessões nas guias de convênio, aplicável às profissionais com remuneração fixa que também atendem convênio. <strong>Esta tela ainda não altera nenhum valor de comissão automaticamente</strong> — o efeito financeiro (se a taxa desconta da comissão da profissional ou é retida à parte pela clínica) depende de confirmação da gestora antes de ser ligado ao cálculo real.</div></div>
+        <div class="panel"><div class="ph"><span class="pt">Faixas de Sessões e Valor da Taxa</span></div><div class="pb"><div id="cf-faixas-taxa-guia"></div>
+          <button class="btn btn-o btn-sm" style="margin-top:10px" onclick="adicionarFaixaTaxaGuia()"><svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Adicionar Faixa</button>
+        </div></div>
+        <div class="panel"><div class="ph"><span class="pt">Profissionais Sujeitas a Esta Taxa</span></div><div class="pb"><div id="cf-profs-taxa-guia"></div></div></div>
+        <div class="form-actions"><button class="btn btn-p btn-sm" onclick="salvarConfigTaxaGuia()"><svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Configuração</button></div>
       </div>
     </section>
 
@@ -1085,11 +1128,12 @@ const TITULOS = {
   'nova-guia':'Nova Guia Convênio',agenda:'Agenda de Atendimentos',
   particulares:'Lançamentos Particulares',guias:'Guias e Convênios',
   'a-receber':'A Receber',faturamento:'Faturamento',despesas:'Despesas',fluxo:'Fluxo de Caixa',desempenho:'Desempenho da Equipe',
+  'curva-abc':'Curva ABC de Faturamento',
   pacientes:'Pacientes',profissionais:'Profissionais',usuarios:'Usuários e Acesso',auditoria:'Auditoria LGPD',
   'config-financeira':'Configuração de Preços e Taxas'
 };
 const PERM_ADMIN = ['usuarios','auditoria','config-financeira'];
-const PERM_GESTOR = ['particulares','guias','a-receber','faturamento','despesas','fluxo','desempenho','pacientes','profissionais','conformidade','checklist-config'];
+const PERM_GESTOR = ['particulares','guias','a-receber','faturamento','despesas','fluxo','desempenho','curva-abc','pacientes','profissionais','conformidade','checklist-config'];
 
 function goPage(id){
   if(!APP.user)return;
@@ -1110,7 +1154,7 @@ function goPage(id){
     'checklist-config':renderChecklistConfig,'novo-particular':popularDropsPart,
     'nova-guia':popularDropsGuia,agenda:renderAgenda,particulares:carregarParticulares,
     guias:carregarGuias,'a-receber':carregarAReceber,faturamento:carregarFaturamento,despesas:carregarDespesas,
-    fluxo:carregarFluxo,desempenho:renderDesempenho,pacientes:carregarPacs,profissionais:carregarProfs,
+    fluxo:carregarFluxo,desempenho:renderDesempenho,'curva-abc':renderCurvaABC,pacientes:carregarPacs,profissionais:carregarProfs,
     usuarios:carregarUsrs,auditoria:carregarLog,'config-financeira':carregarConfigFinanceira
   };
   if(actions[id]) actions[id]();
@@ -1173,7 +1217,15 @@ function buildDashAdmin(d,cont){
     ${kpi(k.resultado>=0?'green':'red',ICOS.res,'Resultado',fmt(k.resultado),'Recebido menos despesas')}
     ${kpi('gold',ICOS.ticket,'Ticket Médio',fmt(k.ticketMedio),'Por atendimento particular')}
     ${kpi('amber',ICOS.clock,'Guias Pendentes',k.qtdGuiasPendentes,'Aguardando pagamento')}
-    ${kpi('purple',ICOS.target,'Meta Anual',pctMeta+'%','de R$ 1.200.000')}
+    ${kpi('purple',ICOS.target,'Meta Anual',pctMeta+'%','de '+fmt(k.metaAnual||1400000))}
+  </div>
+  <div class="sdiv" style="margin-top:18px;font-size:.95rem">Meta Anual — Acompanhamento</div>
+  <div class="alert alert-blue" style="margin-bottom:12px"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Meta mensal calculada de forma linear (meta anual ÷ 12) — ainda não confirmado com a gestora se deve ter sazonalidade por mês. A projeção usa a média mensal do ano corrente até agora.</div></div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+    ${kpi('purple',ICOS.target,'Meta do Mês',fmt(k.metaMesAtual||0),'Faturado: '+fmt(k.faturadoMesAtual||0))}
+    ${kpi(k.faltaParaMetaMes>0?'amber':'green',ICOS.clock,'Falta p/ Meta do Mês',fmt(k.faltaParaMetaMes||0),k.faltaParaMetaMes>0?'ainda faltando':'meta batida!')}
+    ${kpi(k.faltaParaMetaAno>0?'amber':'green',ICOS.clock,'Falta p/ Meta do Ano',fmt(k.faltaParaMetaAno||0),'Faturado no ano: '+fmt(k.faturadoAnoAteAgora||0))}
+    ${kpi('teal',ICOS.trofeu,'Projeção de Meta Batida',k.mesProjecaoMeta||'—','No ritmo médio mensal atual')}
   </div>
   <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
     ${kpi('amber',ICOS.clock,'A Receber (Convênios)',fmt(k.totalAReceber),'Guias ainda não pagas')}
@@ -1220,6 +1272,12 @@ function buildDashGestor(d,cont){
     ${kpi('gold',ICOS.ticket,'Ticket Médio',fmt(k.ticketMedio),'Particular')}
     ${kpi('red',ICOS.desp,'Total Glosado',fmt(k.totalGlosado),'Não reconhecido')}
     ${kpi('teal',ICOS.target,'A Receber',fmt(k.totalAReceber),'Convênios pendentes')}
+  </div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-top:4px">
+    ${kpi('purple',ICOS.target,'Meta do Mês',fmt(k.metaMesAtual||0),'Faturado: '+fmt(k.faturadoMesAtual||0))}
+    ${kpi(k.faltaParaMetaMes>0?'amber':'green',ICOS.clock,'Falta p/ Meta do Mês',fmt(k.faltaParaMetaMes||0),k.faltaParaMetaMes>0?'ainda faltando':'meta batida!')}
+    ${kpi(k.faltaParaMetaAno>0?'amber':'green',ICOS.clock,'Falta p/ Meta do Ano',fmt(k.faltaParaMetaAno||0),'de '+fmt(k.metaAnual||1400000))}
+    ${kpi('teal',ICOS.trofeu,'Projeção de Meta Batida',k.mesProjecaoMeta||'—','No ritmo atual')}
   </div>
   <div class="page-sections">
     <div class="panel"><div class="ph"><span class="pt">Entradas vs Saídas — Mensal</span></div><div class="pb" id="chart-mensal"></div></div>
@@ -1526,6 +1584,89 @@ function buildDesempenhoPage(res,cont){
   });
   html+='</tbody></table></div></div>';
   cont.innerHTML=html;
+}
+
+// ================================================================
+//  CURVA ABC — por código de procedimento, por serviço, por profissional
+// ================================================================
+function renderCurvaABC(){
+  const cont=el('page-curva-abc');
+  cont.innerHTML='<div class="lw"><div class="spin"></div><div class="lw-t">Calculando Curva ABC...</div></div>';
+  google.script.run
+    .withSuccessHandler(res=>{
+      if(!res.ok){cont.innerHTML=`<div class="alert alert-err">${san(res.msg||'Erro ao carregar.')}</div>`;return;}
+      buildCurvaABCPage(res,cont);
+    })
+    .withFailureHandler(e=>{cont.innerHTML=`<div class="alert alert-err">${e.message}</div>`;})
+    .getCurvaABCConsolidada({mes:el('filtro-mes').value},APP.user);
+}
+
+const ABC_TABS=[{id:'abc-codigo',label:'Por Código de Procedimento'},{id:'abc-servico',label:'Por Serviço'},{id:'abc-profissional',label:'Por Profissional'}];
+
+function buildCurvaABCPage(res,cont){
+  cont.innerHTML=`
+  <div class="page-hd"><div><h2>Curva ABC de Faturamento</h2><div class="page-hd-sub">Classificação de Pareto — itens que concentram 80% do faturamento (A), até 95% (B), e o restante (C) · período selecionado no topo</div></div></div>
+  <div class="alert alert-blue"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Classe <strong>A</strong> = itens essenciais (poucos itens, maior parte do faturamento) — priorize a manutenção destes. Classe <strong>C</strong> = itens de menor impacto individual — avalie se vale manter, ajustar preço ou descontinuar. Cortes padrão: A até 80%, B até 95%, C o restante.</div></div>
+  <div class="tabs">
+    ${ABC_TABS.map((t,i)=>`<button class="tab-btn ${i===0?'active':''}" data-tab="${t.id}" onclick="switchTab('curva-abc','${t.id}')">${t.label}</button>`).join('')}
+  </div>
+  <div class="tab-pane active" id="abc-codigo"></div>
+  <div class="tab-pane" id="abc-servico"></div>
+  <div class="tab-pane" id="abc-profissional"></div>`;
+  renderCurvaABCTab(el('abc-codigo'), res.porCodigo, 'codigo', 'Código');
+  renderCurvaABCTab(el('abc-servico'), res.porServico, 'servico', 'Serviço');
+  renderCurvaABCTab(el('abc-profissional'), res.porProfissional, 'profissional_nome', 'Profissional');
+}
+
+function renderCurvaABCTab(w,dados,campoNome,labelCol){
+  if(!w)return;
+  if(!dados||!dados.length){w.innerHTML='<div class="alert alert-info" style="margin-top:12px">Sem dados no período selecionado.</div>';return;}
+  const totalGeral=dados.reduce((s,d)=>s+d.valor,0);
+  const qtdA=dados.filter(d=>d.classe==='A').length, qtdB=dados.filter(d=>d.classe==='B').length, qtdC=dados.filter(d=>d.classe==='C').length;
+  const badgeClasse=c=>c==='A'?'bdg-green':c==='B'?'bdg-amber':'bdg-gray';
+  w.innerHTML=`
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-top:14px">
+    ${kpi('','<path d="M12 2v20M2 12h20"/>','Total do Período',fmt(totalGeral),dados.length+' itens distintos')}
+    ${kpi('green',ICOS.trofeu,'Classe A',qtdA,'até 80% do faturamento')}
+    ${kpi('amber',ICOS.clock,'Classe B',qtdB,'de 80% a 95%')}
+    ${kpi('','<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>','Classe C',qtdC,'restante — revisar')}
+  </div>
+  <div class="panel" style="margin-top:14px"><div class="ph"><span class="pt">Gráfico de Pareto — Top 15</span></div><div class="pb" id="pareto-${campoNome}"></div></div>
+  <div class="panel" style="margin-top:14px"><div class="ph"><span class="pt">Detalhamento Completo</span></div>
+    <div class="tw"><table class="tbl"><thead><tr><th>#</th><th>${labelCol}</th><th>Valor</th><th>% Participação</th><th>% Acumulado</th><th>Classe</th></tr></thead><tbody>
+    ${dados.map((d,i)=>`<tr><td>${i+1}</td><td><strong>${san(String(d[campoNome]||''))}</strong>${d.descricao?`<div style="font-size:.68rem;color:var(--text-3)">${san(d.descricao)}</div>`:''}</td><td>${fmt(d.valor)}</td><td>${d.pct_participacao.toFixed(1)}%</td><td>${d.pct_acumulado.toFixed(1)}%</td><td><span class="bdg ${badgeClasse(d.classe)}">${d.classe}</span></td></tr>`).join('')}
+    </tbody></table></div>
+  </div>`;
+  requestAnimationFrame(()=>renderParetoChart(el('pareto-'+campoNome),dados.slice(0,15),campoNome));
+}
+
+// Gráfico de Pareto: barras (valor) + linha de % acumulado, em SVG puro,
+// seguindo o mesmo padrão visual (sem libs externas) do resto do sistema.
+function renderParetoChart(cont,itens,campoNome){
+  if(!cont||!itens.length)return;
+  const W=760,H=280,padL=50,padR=50,padT=20,padB=60,plotW=W-padL-padR,plotH=H-padT-padB;
+  const mx=Math.max(...itens.map(i=>i.valor),1);
+  const bw=plotW/itens.length*0.62, gap=plotW/itens.length;
+  const corClasse=c=>c==='A'?'#16a34a':c==='B'?'#d97706':'#94a3b8';
+  let bars='',pontos=[],labels='';
+  itens.forEach((it,i)=>{
+    const x=padL+i*gap+(gap-bw)/2;
+    const h=(it.valor/mx)*plotH;
+    const y=padT+plotH-h;
+    bars+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="${corClasse(it.classe)}" opacity=".88"><title>${san(String(it[campoNome]||''))}: ${fmt(it.valor)} (${it.pct_acumulado.toFixed(1)}% acum.)</title></rect>`;
+    const yLinha=padT+plotH-(it.pct_acumulado/100*plotH);
+    pontos.push(`${(x+bw/2).toFixed(1)},${yLinha.toFixed(1)}`);
+    const nomeAbrev=String(it[campoNome]||'').slice(0,10);
+    labels+=`<text x="${(x+bw/2).toFixed(1)}" y="${H-padB+14}" text-anchor="middle" font-size="8" fill="var(--text-3)" transform="rotate(-35 ${(x+bw/2).toFixed(1)} ${H-padB+14})">${san(nomeAbrev)}</text>`;
+  });
+  const linha=`<polyline points="${pontos.join(' ')}" fill="none" stroke="var(--blue)" stroke-width="2"/>`;
+  const pontosCirc=pontos.map(p=>{const[px,py]=p.split(',');return`<circle cx="${px}" cy="${py}" r="2.5" fill="var(--blue)"/>`;}).join('');
+  // linhas de referência 80% e 95%
+  const y80=padT+plotH-(80/100*plotH), y95=padT+plotH-(95/100*plotH);
+  const refLines=`<line x1="${padL}" y1="${y80.toFixed(1)}" x2="${W-padR}" y2="${y80.toFixed(1)}" stroke="#16a34a" stroke-dasharray="4 3" stroke-width="1" opacity=".5"/><text x="${W-padR+4}" y="${y80.toFixed(1)}" font-size="8" fill="#16a34a">80%</text>
+  <line x1="${padL}" y1="${y95.toFixed(1)}" x2="${W-padR}" y2="${y95.toFixed(1)}" stroke="#d97706" stroke-dasharray="4 3" stroke-width="1" opacity=".5"/><text x="${W-padR+4}" y="${y95.toFixed(1)}" font-size="8" fill="#d97706">95%</text>`;
+  cont.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:100%;height:auto">${refLines}${bars}${linha}${pontosCirc}${labels}</svg>
+  <div class="chart-leg"><div class="leg-i"><div class="leg-d" style="background:#16a34a"></div>Classe A</div><div class="leg-i"><div class="leg-d" style="background:#d97706"></div>Classe B</div><div class="leg-i"><div class="leg-d" style="background:#94a3b8"></div>Classe C</div><div class="leg-i"><div class="leg-d" style="background:var(--blue)"></div>% Acumulado</div></div>`;
 }
 
 // ================================================================
@@ -1892,7 +2033,72 @@ function carregarFaturamento(){
     </tbody></table></div>
     <div class="pb"><div class="alert alert-info" style="margin:0"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Para editar uma regra, ajuste diretamente na aba "Regras_Convenio" da planilha — o sistema lê de lá automaticamente.</div></div></div></div>`;
   }).withFailureHandler(e=>{el('fat-regras-lw').style.display='none';el('fat-regras-cont').style.display='block';el('fat-regras-cont').innerHTML='<div class="alert alert-err">Erro: '+san(e.message)+'</div>';}).getRegrasConvenio(APP.user);
+
+  carregarReceitasRecorrentes();
 }
+
+// ================================================================
+//  RECEITAS RECORRENTES (aba "Outras Receitas" dentro de Faturamento)
+// ================================================================
+function popularDropsReceitaRecorrente(){
+  const sel=el('rr-prof'); if(!sel||!APP.listas)return;
+  sel.innerHTML='<option value="">Nenhum / outro pagador</option>'+APP.listas.profissionais.map(p=>`<option value="${p.id}" data-nome="${san(p.nome)}">${san(p.nome)}</option>`).join('');
+}
+function abrirFormReceitaRecorrente(){
+  el('form-receita-recorrente').style.display='block';
+  if(APP.listas) popularDropsReceitaRecorrente();
+  else google.script.run.withSuccessHandler(l=>{APP.listas=l;popularDropsReceitaRecorrente();}).getListas();
+}
+function salvarReceitaRecorrenteForm(){
+  const desc=el('rr-desc').value.trim();
+  if(!desc){toast('Informe a descrição.','err');return;}
+  const valor=parseFloat(el('rr-valor').value||0);
+  if(!valor){toast('Informe o valor mensal.','err');return;}
+  const profSel=el('rr-prof'), profOpt=profSel.options[profSel.selectedIndex];
+  const dados={
+    descricao:desc, categoria:el('rr-cat').value.trim()||'Aluguel de Espaço',
+    pagador_tipo: profSel.value ? 'profissional' : 'outro',
+    pagador_id: profSel.value, pagador_nome: profSel.value ? (profOpt.dataset.nome||profOpt.text) : '',
+    valor_padrao: valor, regra_vencimento: el('rr-venc').value, forma_pgto: el('rr-forma').value,
+    ativo:'SIM', observacao: el('rr-obs').value.trim()
+  };
+  const btn=event.target; btn.disabled=true; btn.textContent='Salvando...';
+  google.script.run.withSuccessHandler(res=>{
+    btn.disabled=false; btn.textContent='Salvar';
+    if(res.ok){toast('Receita recorrente cadastrada!','ok');el('form-receita-recorrente').style.display='none';['rr-desc','rr-valor','rr-obs'].forEach(id=>el(id).value='');carregarReceitasRecorrentes();}
+    else toast('Erro: '+san(res.msg),'err');
+  }).withFailureHandler(e=>{btn.disabled=false;btn.textContent='Salvar';toast(e.message,'err');}).salvarReceitaRecorrente(dados,APP.user);
+}
+function carregarReceitasRecorrentes(){
+  el('rr-lw').style.display='flex'; el('rr-cont').style.display='none';
+  google.script.run.withSuccessHandler(lista=>{
+    el('rr-lw').style.display='none'; el('rr-cont').style.display='block';
+    if(!lista||!lista.length){el('rr-cont').innerHTML='<div class="alert alert-info">Nenhuma receita recorrente cadastrada ainda.</div>';return;}
+    const totalMensal=lista.filter(r=>r.ativo==='SIM').reduce((s,r)=>s+_sanNumJS(r.valor_padrao),0);
+    el('rr-cont').innerHTML=`
+    <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:14px">
+      ${kpi('green',ICOS.part,'Total Mensal Ativo',fmt(totalMensal),lista.filter(r=>r.ativo==='SIM').length+' receita(s) recorrente(s)')}
+      ${kpi('teal',ICOS.conv,'Total Cadastrado',lista.length,'incluindo inativas')}
+    </div>
+    <div class="panel"><div class="tw"><table class="tbl"><thead><tr><th>Descrição</th><th>Pagador</th><th>Categoria</th><th>Valor Mensal</th><th>Vencimento</th><th>Status</th><th>Ação</th></tr></thead><tbody>
+    ${lista.map(r=>`<tr><td><strong>${san(r.descricao)}</strong>${r.observacao?`<div style="font-size:.68rem;color:var(--text-3)">${san(r.observacao)}</div>`:''}</td><td>${san(r.pagador_nome||'—')}</td><td>${san(r.categoria)}</td><td>${fmt(_sanNumJS(r.valor_padrao))}</td><td>${san(r.regra_vencimento||'MANUAL')}</td><td><span class="bdg ${r.ativo==='SIM'?'bdg-green':'bdg-gray'}">${r.ativo==='SIM'?'Ativa':'Inativa'}</span></td><td>${r.ativo==='SIM'?`<button class="btn btn-d btn-xs" onclick="inativarReceitaRecorrente('${r.id}')">Inativar</button>`:''}</td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="pb"><button class="btn btn-o btn-sm" onclick="gerarReceitasRecorrentesMesAtual()">Gerar Lançamento do Mês Atual</button></div></div>`;
+  }).withFailureHandler(e=>{el('rr-lw').style.display='none';el('rr-cont').style.display='block';el('rr-cont').innerHTML='<div class="alert alert-err">Erro: '+san(e.message)+'</div>';}).getReceitasRecorrentes(APP.user);
+}
+function inativarReceitaRecorrente(id){
+  if(!confirm('Inativar esta receita recorrente? O histórico já gerado não é apagado.'))return;
+  google.script.run.withSuccessHandler(res=>{if(res.ok){toast('Receita inativada.','ok');carregarReceitasRecorrentes();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>toast(e.message,'err')).excluirReceitaRecorrente(id,APP.user);
+}
+function gerarReceitasRecorrentesMesAtual(){
+  const hoje=new Date();
+  google.script.run.withSuccessHandler(res=>{
+    if(!res.ok){toast('Erro: '+san(res.msg),'err');return;}
+    toast(res.resultado.geradas.length+' receita(s) gerada(s) para '+res.resultado.mes+'.','ok');
+    carregarReceitasRecorrentes();
+  }).withFailureHandler(e=>toast(e.message,'err')).gerarReceitasRecorrentesDoMes(hoje.getFullYear(),hoje.getMonth(),APP.user);
+}
+function _sanNumJS(v){const n=parseFloat(v);return isNaN(n)?0:n;}
 
 // ================================================================
 //  CONFIG FINANCEIRA — tabela de preços por pacote + taxas de cartão
@@ -1905,6 +2111,8 @@ const PACOTES_PADRAO=[
 function carregarConfigFinanceira(){
   carregarTabelaPrecos();
   carregarTabelaTaxas();
+  carregarMatrizPilates();
+  carregarConfigTaxaGuia();
 }
 function carregarTabelaPrecos(){
   const tbl=el('cf-precos-tbl');
@@ -1988,6 +2196,95 @@ function salvarTaxasCartao(){
     btn.disabled=false;btn.innerHTML='<svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Taxas';
     if(res.ok){toast('Taxas salvas!','ok');carregarTaxasCartaoParaForm();}else toast('Erro: '+san(res.msg),'err');
   }).withFailureHandler(e=>{btn.disabled=false;btn.textContent='Salvar Taxas';toast(e.message,'err');}).salvarTaxasCartao(taxas,APP.user);
+}
+
+// ------------------------------------------------------------
+//  PILATES — MATRIZ DE PREÇOS (plano × frequência semanal)
+// ------------------------------------------------------------
+const PLANOS_PILATES=[{id:'MENSAL',label:'Mensal'},{id:'TRIMESTRAL',label:'Trimestral'},{id:'SEMESTRAL',label:'Semestral'}];
+const FREQS_PILATES=[{id:'1x',label:'1x por semana'},{id:'2x',label:'2x por semana'},{id:'3x',label:'3x por semana'}];
+const SERVICOS_MATRIZ_PILATES=[{id:'PILATES',label:'Pilates — Clínica'},{id:'PILATES-CASA',label:'Pilates — Casa/Home'}];
+
+function carregarMatrizPilates(){
+  const w=el('cf-matriz-pilates'); if(!w)return;
+  google.script.run.withSuccessHandler(res=>{
+    const matriz=(res&&res.ok)?res.dados:{};
+    w.innerHTML=SERVICOS_MATRIZ_PILATES.map(srv=>{
+      const dadosSrv=matriz[srv.id]||{};
+      return `<div style="margin-bottom:18px">
+        <div style="font-weight:700;font-size:.82rem;margin-bottom:8px">${srv.label}</div>
+        <div class="tw"><table class="tbl"><thead><tr><th>Plano</th>${FREQS_PILATES.map(f=>`<th>${f.label}</th>`).join('')}</tr></thead><tbody>
+        ${PLANOS_PILATES.map(pl=>`<tr><td><strong>${pl.label}</strong></td>${FREQS_PILATES.map(f=>{
+          const val=dadosSrv[pl.id]&&dadosSrv[pl.id][f.id]!=null?dadosSrv[pl.id][f.id]:'';
+          return `<td><input type="number" class="price-input" data-msrv="${srv.id}" data-plano="${pl.id}" data-freq="${f.id}" step="0.01" min="0" value="${val}" placeholder="0,00"></td>`;
+        }).join('')}</tr>`).join('')}
+        </tbody></table></div>
+      </div>`;
+    }).join('');
+  }).withFailureHandler(e=>{w.innerHTML='<div class="alert alert-err">Erro ao carregar: '+san(e.message)+'</div>';}).getMatrizPrecoServico(APP.user);
+}
+function salvarMatrizPilates(){
+  const inputs=document.querySelectorAll('#cf-matriz-pilates .price-input');
+  const matriz={};
+  inputs.forEach(inp=>{
+    const srv=inp.dataset.msrv, plano=inp.dataset.plano, freq=inp.dataset.freq, val=inp.value;
+    if(val==='') return;
+    if(!matriz[srv]) matriz[srv]={};
+    if(!matriz[srv][plano]) matriz[srv][plano]={};
+    matriz[srv][plano][freq]=parseFloat(val);
+  });
+  const btn=event.target; btn.disabled=true; btn.textContent='Salvando...';
+  google.script.run.withSuccessHandler(res=>{
+    btn.disabled=false; btn.innerHTML='<svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Matriz do Pilates';
+    if(res.ok){toast('Matriz de preços do Pilates salva!','ok');carregarMatrizPilates();}else toast('Erro: '+san(res.msg),'err');
+  }).withFailureHandler(e=>{btn.disabled=false;btn.textContent='Salvar Matriz do Pilates';toast(e.message,'err');}).salvarMatrizPrecoServico(matriz,APP.user);
+}
+
+// ------------------------------------------------------------
+//  TAXA DE GUIA POR FAIXA DE SESSÕES — tela de configuração
+//  (SEM efeito financeiro plugado ainda — ver aviso na tela)
+// ------------------------------------------------------------
+function carregarConfigTaxaGuia(){
+  const wFaixas=el('cf-faixas-taxa-guia'), wProfs=el('cf-profs-taxa-guia');
+  if(!wFaixas||!wProfs)return;
+  google.script.run.withSuccessHandler(res=>{
+    const cfg=(res&&res.ok)?res.dados:{faixas:[],profissionais_ids:[]};
+    renderFaixasTaxaGuia(cfg.faixas||[]);
+    if(!APP.listas){ google.script.run.withSuccessHandler(l=>{APP.listas=l;renderProfsTaxaGuia(cfg.profissionais_ids||[]);}).getListas(); }
+    else renderProfsTaxaGuia(cfg.profissionais_ids||[]);
+  }).withFailureHandler(e=>{wFaixas.innerHTML='<div class="alert alert-err">Erro: '+san(e.message)+'</div>';}).getTaxaGuiaPorFaixa(APP.user);
+}
+function renderFaixasTaxaGuia(faixas){
+  const w=el('cf-faixas-taxa-guia'); if(!w)return;
+  w.innerHTML=`<div class="tw"><table class="tbl"><thead><tr><th>De (sessões)</th><th>Até (sessões)</th><th>Valor da Taxa (R$)</th><th></th></tr></thead><tbody id="cf-faixas-tbody">
+  ${faixas.map((f,i)=>`<tr data-idx="${i}"><td><input type="number" class="faixa-de" min="1" value="${f.de}"></td><td><input type="number" class="faixa-ate" min="1" value="${f.ate}"></td><td><input type="number" class="faixa-valor" step="0.01" min="0" value="${f.valor}"></td><td><button class="btn btn-d btn-xs" onclick="this.closest('tr').remove()">Remover</button></td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+function adicionarFaixaTaxaGuia(){
+  const tbody=el('cf-faixas-tbody'); if(!tbody)return;
+  const tr=document.createElement('tr');
+  tr.innerHTML='<td><input type="number" class="faixa-de" min="1" placeholder="1"></td><td><input type="number" class="faixa-ate" min="1" placeholder="5"></td><td><input type="number" class="faixa-valor" step="0.01" min="0" placeholder="0,00"></td><td><button class="btn btn-d btn-xs" onclick="this.closest(\'tr\').remove()">Remover</button></td>';
+  tbody.appendChild(tr);
+}
+function renderProfsTaxaGuia(idsSelecionados){
+  const w=el('cf-profs-taxa-guia'); if(!w||!APP.listas)return;
+  const profs=APP.listas.profissionais||[];
+  w.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
+  ${profs.map(p=>`<label style="display:flex;align-items:center;gap:6px;font-size:.8rem"><input type="checkbox" class="prof-taxa-guia-chk" value="${p.id}" ${idsSelecionados.includes(p.id)?'checked':''}> ${san(p.nome)}</label>`).join('')}
+  </div>`;
+}
+function salvarConfigTaxaGuia(){
+  const faixas=[];
+  document.querySelectorAll('#cf-faixas-tbody tr').forEach(tr=>{
+    const de=parseInt(tr.querySelector('.faixa-de').value||0), ate=parseInt(tr.querySelector('.faixa-ate').value||0), valor=parseFloat(tr.querySelector('.faixa-valor').value||0);
+    if(de&&ate&&valor) faixas.push({de,ate,valor});
+  });
+  const profissionais_ids=Array.from(document.querySelectorAll('.prof-taxa-guia-chk:checked')).map(c=>c.value);
+  const btn=event.target; btn.disabled=true; btn.textContent='Salvando...';
+  google.script.run.withSuccessHandler(res=>{
+    btn.disabled=false; btn.innerHTML='<svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Configuração';
+    if(res.ok){toast('Configuração de taxa por faixa salva!','ok');carregarConfigTaxaGuia();}else toast('Erro: '+san(res.msg),'err');
+  }).withFailureHandler(e=>{btn.disabled=false;btn.textContent='Salvar Configuração';toast(e.message,'err');}).salvarTaxaGuiaPorFaixa({faixas,profissionais_ids},APP.user);
 }
 
 function carregarAReceber(){

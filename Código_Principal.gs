@@ -459,11 +459,71 @@ function registrarLogout(usuario) {
 
 // ============================================================
 //  HELPERS GERAIS (usados por todos os módulos)
+//
+//  CORREÇÃO CRÍTICA v7.1 — bug raiz do dashboard mostrando valores
+//  muito abaixo do esperado (ex: "R$2.590,82" de receita total num
+//  período que devia somar centenas de milhares de reais):
+//
+//  1) _sanNum() usava só `parseFloat(v)`, que lê número BR com vírgula
+//     decimal (ex: "150,00") corretamente por acaso, mas TRUNCA
+//     silenciosamente qualquer valor com separador de milhar em ponto
+//     (ex: "1.234,56" virava 1.234 em vez de 1234.56 — um valor ~1000x
+//     menor). Como várias colunas de valor vêm da planilha como texto
+//     formatado em BR, isso subestimava boa parte dos lançamentos.
+//  2) _mesDoDate() exigia receber sempre um objeto Date (`d.getMonth()`
+//     direto) — mas é chamado em vários lugares passando a STRING crua
+//     da planilha (ex: `_mesDoDate(r.data)` no dashboard), o que
+//     lançava TypeError e derrubava silenciosamente aquele lançamento
+//     do agrupamento por mês (ele não entrava em nenhum mês, nem em
+//     "Todos os meses").
+//  3) _dateStr() para string fazia só `.slice(0,10)`, assumindo que a
+//     string já vinha em yyyy-MM-dd — quebra para qualquer outro
+//     formato de data armazenado na planilha.
+//
+//  As versões abaixo tratam os dois formatos de número (BR e US) e
+//  aceitam Date ou string em qualquer uma dessas 4 funções, sempre
+//  tratando a data como horário LOCAL (nunca UTC — ver _parseDataLocal),
+//  evitando o clássico bug de "dia 1º do mês vira dia 30/31 do mês
+//  anterior" que a interpretação UTC de strings yyyy-MM-dd causa em
+//  fusos negativos como o do Brasil.
 // ============================================================
+function _parseDataLocal(data) {
+  if (data instanceof Date) return data;
+  if (data === null || data === undefined || data === '') return new Date(NaN);
+  const s = String(data);
+  const mIso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (mIso) return new Date(parseInt(mIso[1],10), parseInt(mIso[2],10)-1, parseInt(mIso[3],10));
+  const mBr = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (mBr) return new Date(parseInt(mBr[3],10), parseInt(mBr[2],10)-1, parseInt(mBr[1],10));
+  return new Date(s); // fallback: deixa o JS tentar (ex: já serializado pelo Sheets)
+}
 const _san = v => v ? String(v).replace(/[<>'"&]/g,'').trim() : '';
-const _sanNum = (v,d) => { const n = parseFloat(v); return isNaN(n) ? (d||0) : n; };
-const _mesDoDate = d => ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'][d.getMonth()];
-const _dateStr = d => { if (!d) return ''; if (typeof d === 'string') return d.slice(0,10); return Utilities.formatDate(d,'America/Sao_Paulo','yyyy-MM-dd'); };
+function _sanNum(valor, padrao) {
+  const p = (padrao === undefined) ? 0 : padrao;
+  if (valor === null || valor === undefined || valor === '') return p;
+  if (typeof valor === 'number') return isNaN(valor) ? p : valor;
+  let s = String(valor).trim();
+  if (s.indexOf(',') !== -1 && s.indexOf('.') !== -1) {
+    // tem os dois separadores -> formato BR (1.234,56): ponto é milhar, vírgula é decimal
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (s.indexOf(',') !== -1) {
+    // só vírgula -> decimal BR simples (ex: "150,00")
+    s = s.replace(',', '.');
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? p : n;
+}
+function _mesDoDate(data) {
+  const MESES = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+  const d = _parseDataLocal(data);
+  if (isNaN(d.getTime())) return '';
+  return MESES[d.getMonth()];
+}
+function _dateStr(data) {
+  const d = _parseDataLocal(data);
+  if (isNaN(d.getTime())) return '';
+  return Utilities.formatDate(d, 'America/Sao_Paulo', 'yyyy-MM-dd');
+}
 
 function _getSheet(ss, nome) {
   const sh = ss.getSheetByName(nome);

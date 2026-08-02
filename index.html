@@ -919,8 +919,26 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 
     <!-- FLUXO -->
     <section class="page" id="page-fluxo">
-      <div class="page-hd"><h2>Fluxo de Caixa</h2></div>
-      <div id="fluxo-cont"></div>
+      <div class="page-hd"><div><h2>Fluxo de Caixa</h2><div class="page-hd-sub">Histórico realizado, projeção para os próximos meses e comparação planejado × realizado</div></div><button class="btn btn-g btn-sm" onclick="carregarFluxo()"><svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Atualizar</button></div>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="flx-historico" onclick="switchTab('fluxo','flx-historico')">Histórico Realizado</button>
+        <button class="tab-btn" data-tab="flx-projecao" onclick="switchTab('fluxo','flx-projecao')">Realizado + Projeção</button>
+        <button class="tab-btn" data-tab="flx-planejado" onclick="switchTab('fluxo','flx-planejado')">Planejado × Realizado</button>
+      </div>
+      <div class="tab-pane active" id="flx-historico">
+        <div id="flx-historico-lw" class="lw"><div class="spin"></div><div class="lw-t">Calculando fluxo de caixa histórico...</div></div>
+        <div id="flx-historico-cont" style="display:none"></div>
+      </div>
+      <div class="tab-pane" id="flx-projecao">
+        <div class="alert alert-blue"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Os meses já fechados mostram o valor <strong>realizado</strong> (já lançado no sistema). Os meses futuros mostram uma <strong>projeção</strong> baseada na média dos últimos 3 meses fechados de particular, mais as guias de convênio e despesas recorrentes já previstas.</div></div>
+        <div id="flx-projecao-lw" class="lw"><div class="spin"></div><div class="lw-t">Calculando projeção...</div></div>
+        <div id="flx-projecao-cont" style="display:none"></div>
+      </div>
+      <div class="tab-pane" id="flx-planejado">
+        <div class="alert alert-blue"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div>Compara o total de despesas <strong>recorrentes fixas</strong> esperadas para o mês (cadastradas em Despesas Recorrentes) com o que foi <strong>efetivamente lançado</strong> na aba Despesas naquele mês. Ajuda a identificar meses em que se gastou mais ou menos do que o planejado.</div></div>
+        <div id="flx-planejado-lw" class="lw"><div class="spin"></div><div class="lw-t">Comparando planejado e realizado...</div></div>
+        <div id="flx-planejado-cont" style="display:none"></div>
+      </div>
     </section>
 
     <!-- PACIENTES -->
@@ -2345,23 +2363,103 @@ function carregarDespesas(){
 //  FLUXO
 // ================================================================
 function carregarFluxo(){
-  const w=el('fluxo-cont');if(!w)return;
-  w.innerHTML='<div class="lw"><div class="spin"></div></div>';
-  const mes=el('filtro-mes').value;
-  Promise.all([
-    new Promise(r=>google.script.run.withSuccessHandler(r).withFailureHandler(()=>r([])).getParticulares({mes})),
-    new Promise(r=>google.script.run.withSuccessHandler(r).withFailureHandler(()=>r([])).getGuias({mes})),
-    new Promise(r=>google.script.run.withSuccessHandler(r).withFailureHandler(()=>r([])).getDespesas({mes}))
-  ]).then(([ps,gs,ds])=>{
-    const pb={},cb={},db={};
-    (ps||[]).forEach(r=>{pb[r.mes]=(pb[r.mes]||0)+parseFloat(r.valor||0);});
-    (gs||[]).forEach(r=>{cb[r.mes]=(cb[r.mes]||0)+parseFloat(r.valor_total||0);});
-    (ds||[]).forEach(r=>{db[r.mes]=(db[r.mes]||0)+parseFloat(r.valor||0);});
-    let ac=0;
-    const rows=MESES.map(m=>{const p=pb[m]||0,c=cb[m]||0,d=db[m]||0,t=p+c,res=t-d;if(t>0||d>0)ac+=res;return{m,p,c,t,d,res,ac,has:t>0||d>0};});
-    const tres=rows.reduce((s,r)=>s+r.res,0);
-    w.innerHTML=`<div class="panel"><div class="ph"><span class="pt">Fluxo de Caixa — 2026</span></div><div class="alert alert-blue" style="margin:14px"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><div>Convênios pagam com 30–90 dias de atraso. Atualize o status das guias para refletir o caixa real.</div></div><div class="tw"><table class="tbl"><thead><tr><th>Mês</th><th>+ Particular</th><th>+ Convênios</th><th>= Receitas</th><th>– Despesas</th><th>Resultado</th><th>Acumulado</th></tr></thead><tbody>${rows.map(r=>`<tr><td><strong>${r.m}</strong></td><td style="color:var(--amber)">${r.p?fmt(r.p):'—'}</td><td style="color:var(--teal)">${r.c?fmt(r.c):'—'}</td><td style="font-weight:600">${r.t?fmt(r.t):'—'}</td><td style="color:var(--red)">${r.d?fmt(r.d):'—'}</td><td style="font-weight:700;color:${r.has?(r.res>=0?'var(--green)':'var(--red)'):'var(--text-3)'}">${r.has?fmt(r.res):'—'}</td><td style="font-weight:600">${r.ac?fmt(r.ac):'—'}</td></tr>`).join('')}</tbody><tfoot><tr><td><strong>TOTAL</strong></td><td><strong>${fmt(rows.reduce((s,r)=>s+r.p,0))}</strong></td><td><strong>${fmt(rows.reduce((s,r)=>s+r.c,0))}</strong></td><td><strong>${fmt(rows.reduce((s,r)=>s+r.t,0))}</strong></td><td><strong>${fmt(rows.reduce((s,r)=>s+r.d,0))}</strong></td><td style="color:${tres>=0?'var(--green)':'var(--red)'}"><strong>${fmt(tres)}</strong></td><td></td></tr></tfoot></table></div></div>`;
-  });
+  carregarFluxoHistorico();
+  carregarFluxoProjecao();
+  carregarFluxoPlanejado();
+}
+
+// ------------------------------------------------------------
+//  ABA 1 — HISTÓRICO REALIZADO (getFluxoCaixaHistorico)
+// ------------------------------------------------------------
+function carregarFluxoHistorico(){
+  el('flx-historico-lw').style.display='flex'; el('flx-historico-cont').style.display='none';
+  google.script.run.withSuccessHandler(res=>{
+    el('flx-historico-lw').style.display='none'; el('flx-historico-cont').style.display='block';
+    if(!res.ok){el('flx-historico-cont').innerHTML='<div class="alert alert-err">'+san(res.msg||'Erro ao calcular.')+'</div>';return;}
+    const meses=res.meses;
+    const totalEntradas=meses.reduce((s,m)=>s+m.totalEntradas,0), totalSaidas=meses.reduce((s,m)=>s+m.totalSaidas,0);
+    el('flx-historico-cont').innerHTML=`
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
+      ${kpi('green',ICOS.part,'Total de Entradas',fmt(totalEntradas),meses.length+' meses no período')}
+      ${kpi('red',ICOS.desp,'Total de Saídas',fmt(totalSaidas),'Despesas lançadas')}
+      ${kpi(res.saldoAcumulado>=0?'green':'red',ICOS.res,'Saldo Acumulado',fmt(res.saldoAcumulado),'Entradas menos saídas')}
+    </div>
+    <div class="panel"><div class="ph"><span class="pt">Evolução Mensal — Entradas × Saídas</span></div><div class="pb" id="flx-chart-hist"></div></div>
+    <div class="panel" style="margin-top:14px"><div class="ph"><span class="pt">Detalhamento por Mês</span></div><div class="tw"><table class="tbl"><thead><tr><th>Mês</th><th>Particular</th><th>Convênio</th><th>Outras Receitas</th><th>Total Entradas</th><th>Saídas</th><th>Saldo do Mês</th></tr></thead><tbody>
+    ${meses.map(m=>`<tr${m.ehMesAtual?' style="background:var(--surface-2)"':''}><td><strong>${m.mes}</strong>${m.ehMesAtual?' <span class="bdg bdg-teal" style="font-size:.6rem">em curso</span>':''}</td><td>${fmt(m.entradaParticular)}</td><td>${fmt(m.entradaConvenio)}</td><td>${fmt(m.entradaRecorrente)}</td><td style="font-weight:600">${fmt(m.totalEntradas)}</td><td style="color:var(--red)">${fmt(m.totalSaidas)}</td><td style="font-weight:700;color:${m.saldoMes>=0?'var(--green)':'var(--red)'}">${fmt(m.saldoMes)}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+    requestAnimationFrame(()=>renderFluxoChartHistorico(meses));
+  }).withFailureHandler(e=>{el('flx-historico-lw').style.display='none';el('flx-historico-cont').style.display='block';el('flx-historico-cont').innerHTML='<div class="alert alert-err">'+san(e.message)+'</div>';}).getFluxoCaixaHistorico(12,APP.user);
+}
+function renderFluxoChartHistorico(meses){
+  const cont=el('flx-chart-hist'); if(!cont)return;
+  const mx=Math.max(...meses.map(m=>Math.max(m.totalEntradas,m.totalSaidas)),1);
+  cont.innerHTML=`<div class="bar-wrap">${meses.map(m=>{
+    const he=((m.totalEntradas/mx)*100).toFixed(1), hs=((m.totalSaidas/mx)*100).toFixed(1);
+    return `<div class="bc" title="${m.mes}: Entradas ${fmt(m.totalEntradas)} | Saídas ${fmt(m.totalSaidas)}">
+      <div class="bs"><div class="bs-seg" style="height:${hs}%;background:var(--red);opacity:.55"></div><div class="bs-seg" style="height:${he}%;background:var(--green)"></div></div>
+      <div class="bc-lbl">${MESES_ABR[MESES.indexOf(m.mes)]}</div></div>`;
+  }).join('')}</div><div class="chart-leg"><div class="leg-i"><div class="leg-d" style="background:var(--green)"></div>Entradas</div><div class="leg-i"><div class="leg-d" style="background:var(--red)"></div>Saídas</div></div>`;
+}
+
+// ------------------------------------------------------------
+//  ABA 2 — REALIZADO + PROJEÇÃO (getFluxoCaixaCompleto)
+// ------------------------------------------------------------
+function carregarFluxoProjecao(){
+  el('flx-projecao-lw').style.display='flex'; el('flx-projecao-cont').style.display='none';
+  google.script.run.withSuccessHandler(res=>{
+    el('flx-projecao-lw').style.display='none'; el('flx-projecao-cont').style.display='block';
+    if(!res.ok){el('flx-projecao-cont').innerHTML='<div class="alert alert-err">'+san(res.msg||'Erro ao calcular.')+'</div>';return;}
+    el('flx-projecao-cont').innerHTML=`
+    ${res.aviso?`<div class="alert alert-warn"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div>${san(res.aviso)}</div></div>`:''}
+    <div class="panel"><div class="ph"><span class="pt">Realizado até Aqui + Projeção para os Próximos Meses</span></div><div class="pb" id="flx-chart-proj"></div></div>
+    <div class="panel" style="margin-top:14px"><div class="tw"><table class="tbl"><thead><tr><th>Mês</th><th>Situação</th><th>Entradas</th><th>Saídas</th><th>Saldo</th></tr></thead><tbody>
+    ${res.serie.map(s=>`<tr><td><strong>${s.mes}/${s.ano}</strong></td><td><span class="bdg ${s.tipo==='realizado'?'bdg-green':'bdg-amber'}">${s.tipo==='realizado'?'Realizado':'Projetado'}</span></td><td>${fmt(s.entradas)}</td><td style="color:var(--red)">${fmt(s.saidas)}</td><td style="font-weight:700;color:${s.saldo>=0?'var(--green)':'var(--red)'}">${fmt(s.saldo)}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+    requestAnimationFrame(()=>renderFluxoChartProjecao(res.serie));
+  }).withFailureHandler(e=>{el('flx-projecao-lw').style.display='none';el('flx-projecao-cont').style.display='block';el('flx-projecao-cont').innerHTML='<div class="alert alert-err">'+san(e.message)+'</div>';}).getFluxoCaixaCompleto(6,3,APP.user);
+}
+function renderFluxoChartProjecao(serie){
+  const cont=el('flx-chart-proj'); if(!cont||!serie.length)return;
+  const mx=Math.max(...serie.map(s=>Math.max(s.entradas,s.saidas)),1);
+  cont.innerHTML=`<div class="bar-wrap">${serie.map(s=>{
+    const he=((s.entradas/mx)*100).toFixed(1), hs=((s.saidas/mx)*100).toFixed(1);
+    const opacidade = s.tipo==='projetado' ? '.45' : '1';
+    return `<div class="bc" title="${s.mes}/${s.ano} (${s.tipo}): Entradas ${fmt(s.entradas)} | Saídas ${fmt(s.saidas)}">
+      <div class="bs" style="opacity:${opacidade}"><div class="bs-seg" style="height:${hs}%;background:var(--red);opacity:.55"></div><div class="bs-seg" style="height:${he}%;background:${s.tipo==='projetado'?'var(--gold)':'var(--green)'}"></div></div>
+      <div class="bc-lbl">${MESES_ABR[MESES.indexOf(s.mes)]}${s.tipo==='projetado'?'*':''}</div></div>`;
+  }).join('')}</div><div class="chart-leg"><div class="leg-i"><div class="leg-d" style="background:var(--green)"></div>Entradas Realizadas</div><div class="leg-i"><div class="leg-d" style="background:var(--gold)"></div>Entradas Projetadas (*)</div><div class="leg-i"><div class="leg-d" style="background:var(--red)"></div>Saídas</div></div>`;
+}
+
+// ------------------------------------------------------------
+//  ABA 3 — PLANEJADO × REALIZADO (usa getFluxoCaixaHistorico
+//  também, que já traz planejadoDespesa/realizadoDespesa)
+// ------------------------------------------------------------
+function carregarFluxoPlanejado(){
+  el('flx-planejado-lw').style.display='flex'; el('flx-planejado-cont').style.display='none';
+  google.script.run.withSuccessHandler(res=>{
+    el('flx-planejado-lw').style.display='none'; el('flx-planejado-cont').style.display='block';
+    if(!res.ok){el('flx-planejado-cont').innerHTML='<div class="alert alert-err">'+san(res.msg||'Erro ao calcular.')+'</div>';return;}
+    const meses=res.meses.filter(m=>m.planejadoDespesa>0||m.realizadoDespesa>0);
+    if(!meses.length){el('flx-planejado-cont').innerHTML='<div class="alert alert-info">Nenhuma despesa recorrente fixa cadastrada ainda para comparar.</div>';return;}
+    el('flx-planejado-cont').innerHTML=`
+    <div class="panel"><div class="ph"><span class="pt">Planejado × Realizado — Despesas Fixas</span></div><div class="pb" id="flx-chart-planejado"></div></div>
+    <div class="panel" style="margin-top:14px"><div class="tw"><table class="tbl"><thead><tr><th>Mês</th><th>Planejado</th><th>Realizado</th><th>Diferença</th></tr></thead><tbody>
+    ${meses.map(m=>`<tr><td><strong>${m.mes}</strong></td><td>${fmt(m.planejadoDespesa)}</td><td>${fmt(m.realizadoDespesa)}</td><td style="font-weight:700;color:${m.diferencaDespesa<=0?'var(--green)':'var(--red)'}">${m.diferencaDespesa>0?'+':''}${fmt(m.diferencaDespesa)}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+    requestAnimationFrame(()=>renderFluxoChartPlanejado(meses));
+  }).withFailureHandler(e=>{el('flx-planejado-lw').style.display='none';el('flx-planejado-cont').style.display='block';el('flx-planejado-cont').innerHTML='<div class="alert alert-err">'+san(e.message)+'</div>';}).getFluxoCaixaHistorico(12,APP.user);
+}
+function renderFluxoChartPlanejado(meses){
+  const cont=el('flx-chart-planejado'); if(!cont)return;
+  const mx=Math.max(...meses.map(m=>Math.max(m.planejadoDespesa,m.realizadoDespesa)),1);
+  cont.innerHTML=`<div class="bar-wrap">${meses.map(m=>{
+    const hp=((m.planejadoDespesa/mx)*100).toFixed(1), hr=((m.realizadoDespesa/mx)*100).toFixed(1);
+    return `<div class="bc" title="${m.mes}: Planejado ${fmt(m.planejadoDespesa)} | Realizado ${fmt(m.realizadoDespesa)}">
+      <div class="bs"><div class="bs-seg" style="height:${hp}%;background:var(--text-3);opacity:.4"></div></div>
+      <div class="bs" style="margin-top:-100%"><div class="bs-seg" style="height:${hr}%;background:var(--purple)"></div></div>
+      <div class="bc-lbl">${MESES_ABR[MESES.indexOf(m.mes)]}</div></div>`;
+  }).join('')}</div><div class="chart-leg"><div class="leg-i"><div class="leg-d" style="background:var(--text-3)"></div>Planejado</div><div class="leg-i"><div class="leg-d" style="background:var(--purple)"></div>Realizado</div></div>`;
 }
 
 // ================================================================

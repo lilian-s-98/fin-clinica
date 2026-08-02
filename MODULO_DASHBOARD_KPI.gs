@@ -1,11 +1,30 @@
 // ============================================================
-//  MODULO_DASHBOARD_KPI.gs — v6.0
+//  MODULO_DASHBOARD_KPI.gs — v7.0
 //  Substitui a antiga getDashboardData (mesma assinatura/uso no
 //  front-end), agora incluindo: Total Faturado, Total Recebido,
-//  Valor em Glosa, Valores a Receber, e os dados para os gráficos
+//  Valor em Glosa, Valores a Receber, meta mensal + quanto falta
+//  para bater a meta do mês/ano, projeção de mês em que a meta
+//  anual será atingida no ritmo atual, e os dados para os gráficos
 //  de faturamento por convênio, status de lotes e desempenho por
 //  profissional. NÃO inclui mais nada de IA/Anthropic.
+//
+//  META MENSAL — DEFAULT ASSUMIDO (confirmar com a gestora):
+//  CONFIG.META_ANUAL / 12, linear, sem sazonalidade. Se no futuro
+//  a clínica quiser meta diferente por mês (ex.: dezembro mais
+//  fraco), trocar a constante META_MENSAL_LINEAR abaixo por uma
+//  tabela MES -> valor, sem precisar mexer em mais nada — o resto
+//  do cálculo já usa a função getMetaDoMes() como ponto único.
 // ============================================================
+
+const MESES_ORDEM = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+
+// Ponto único de definição da meta mensal. Hoje: linear (meta anual / 12).
+// Troque aqui se a gestora confirmar sazonalidade — ex:
+// const METAS_MENSAIS_CUSTOM = {JANEIRO:100000, ..., DEZEMBRO:80000};
+// e troque o corpo da função para usar essa tabela em vez do cálculo linear.
+function getMetaDoMes(mesTexto) {
+  return CONFIG.META_ANUAL / 12;
+}
 
 function getDashboardData(filtros, usuario) {
   try {
@@ -24,9 +43,8 @@ function getDashboardData(filtros, usuario) {
     const totalRecebido = recParticular + totalRecebidoConvenio; // particular é sempre "recebido na hora"
     const resultado = totalRecebido - totalDespesas;
 
-    const MESES = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
     const porMes = {};
-    MESES.forEach(m => porMes[m] = {particular:0,convenio:0,despesa:0});
+    MESES_ORDEM.forEach(m => porMes[m] = {particular:0,convenio:0,despesa:0});
     particulares.forEach(r => { if(porMes[r.mes]) porMes[r.mes].particular += _sanNum(r.valor); });
     guias.forEach(r => { if(porMes[r.mes]) porMes[r.mes].convenio += _sanNum(r.valor_total); });
     despesas.forEach(r => { if(porMes[r.mes]) porMes[r.mes].despesa += _sanNum(r.valor); });
@@ -51,6 +69,29 @@ function getDashboardData(filtros, usuario) {
     // resumo de glosas
     const resumoGlosas = getResumoGlosas(filtros, usuario);
 
+    // --- META MENSAL/ANUAL — usa o faturamento do ANO INTEIRO até agora,
+    //     não só do mês filtrado, porque a meta é sempre um acumulado anual.
+    const mesAtualTexto = MESES_ORDEM[hoje.getMonth()];
+    const anoFiltros = { mes: 'todos' }; // sempre olha o ano todo pra meta, independente do filtro de mês da tela
+    const particularesAno = getParticulares(anoFiltros).filter(r => new Date(r.data).getFullYear() === hoje.getFullYear());
+    const guiasAno = getGuias(anoFiltros).filter(g => new Date(g.data).getFullYear() === hoje.getFullYear());
+    const faturadoAnoAteAgora = particularesAno.reduce((s,r)=>s+_sanNum(r.valor),0) + guiasAno.reduce((s,r)=>s+_sanNum(r.valor_total),0);
+
+    const faturadoMesAtual = porMes[mesAtualTexto] ? (porMes[mesAtualTexto].particular + porMes[mesAtualTexto].convenio) : 0;
+    const metaMesAtual = getMetaDoMes(mesAtualTexto);
+    const faltaParaMetaMes = Math.max(metaMesAtual - faturadoMesAtual, 0);
+    const faltaParaMetaAno = Math.max(CONFIG.META_ANUAL - faturadoAnoAteAgora, 0);
+
+    // projeção: no ritmo médio mensal do ano até agora, em que mês a meta anual seria atingida
+    const mesesDecorridos = hoje.getMonth() + 1; // 1-12
+    const mediaMensalAno = mesesDecorridos > 0 ? faturadoAnoAteAgora / mesesDecorridos : 0;
+    let mesProjecaoMeta = null;
+    if (mediaMensalAno > 0) {
+      const mesesNecessarios = Math.ceil(CONFIG.META_ANUAL / mediaMensalAno);
+      mesProjecaoMeta = mesesNecessarios <= 12 ? MESES_ORDEM[mesesNecessarios-1] + '/' + hoje.getFullYear()
+        : 'não atinge a meta em ' + hoje.getFullYear() + ' no ritmo atual (precisaria de ' + mesesNecessarios + ' meses)';
+    }
+
     return {
       ok: true,
       kpis: {
@@ -59,7 +100,11 @@ function getDashboardData(filtros, usuario) {
         qtdGuiasPendentes: guias.filter(g=>g.status==='Pendente').length,
         ticketMedio: particulares.length > 0 ? recParticular/particulares.length : 0,
         qtdHoje: agendaHoje.length,
-        pctMeta: Math.min((totalFaturado/CONFIG.META_ANUAL)*100,999).toFixed(1)
+        pctMeta: Math.min((faturadoAnoAteAgora/CONFIG.META_ANUAL)*100,999).toFixed(1),
+        metaAnual: CONFIG.META_ANUAL,
+        metaMesAtual, faturadoMesAtual, faltaParaMetaMes,
+        faturadoAnoAteAgora, faltaParaMetaAno,
+        mediaMensalAno, mesProjecaoMeta
       },
       porMes, porConvenio: resumoConvenio.dados||[], porProfissional, aVencer,
       agendaHoje, conformidade: conf,

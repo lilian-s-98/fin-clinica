@@ -1,17 +1,40 @@
 // ============================================================
-//  INSTITUTO DA DOR — Codigo_Principal.gs  v6.0
+//  INSTITUTO DA DOR — Codigo_Principal.gs  v7.0
 //  Sistema de Gestão Clínica e Financeira
 //  Gabillaud Consultoria | 2026
 //
-//  NOVIDADES v6.0:
+//  NOVIDADES v7.0:
+//  - Meta anual atualizada para R$ 1.400.000 (CONFIG.META_ANUAL).
+//  - Novo serviço Pilates (Solo e Casa/Home) com matriz de preços
+//    própria (plano × frequência semanal), ver
+//    MODULO_CONFIG_FINANCEIRA.gs (getMatrizPrecoServico).
+//  - Nova aba Receitas_Recorrentes — primeira fonte de receita
+//    recorrente fora de convênio/particular (ex: aluguel de espaço),
+//    ver MODULO_RECEITAS_RECORRENTES.gs.
+//  - Novo painel de configuração de taxa de guia por faixa de
+//    sessões, para profissionais com remuneração fixa que também
+//    recebem guia de convênio (ver MODULO_CONFIG_FINANCEIRA.gs).
+//    ATENÇÃO: por ora esta é só a TELA DE CONFIGURAÇÃO — o efeito
+//    financeiro (se desconta da comissão ou é retido à parte antes
+//    dela) ainda não está plugado em calcularComissaoGuia() porque
+//    depende de confirmação da gestora. Ver comentário no próprio
+//    MODULO_CONFIG_FINANCEIRA.gs.
+//  - Nova Curva ABC (por código de procedimento, por serviço e por
+//    profissional), ver MODULO_CURVA_ABC.gs.
+//  - Nova função importarHistoricoReal() — importa os lançamentos
+//    particulares e despesas reais de Jan-Jul/2026 fornecidos pela
+//    gestora, sem apagar nada existente e sem duplicar se rodada
+//    mais de uma vez. Ver MODULO_IMPORTACAO_HISTORICO.gs.
+//
+//  NOVIDADES v6.0 (mantidas):
 //  - Removido: Assistente de IA (consultarIA e toda a integração
 //    com a API da Anthropic). Não há mais chave de API armazenada.
-//  - Novo módulo de Comissionamento configurável por profissional
+//  - Módulo de Comissionamento configurável por profissional
 //    (Modulo_Comissionamento.gs)
-//  - Novo módulo de Regras de Convênio / Faturamento configurável
+//  - Módulo de Regras de Convênio / Faturamento configurável
 //    (Modulo_Convenios_Faturamento.gs)
-//  - Novo módulo de Glosas (Modulo_Glosas.gs)
-//  - Novo módulo de Lotes/Protocolos (Modulo_Lotes.gs)
+//  - Módulo de Glosas (Modulo_Glosas.gs)
+//  - Módulo de Lotes/Protocolos (Modulo_Lotes.gs)
 //  - Dashboard e KPIs ampliados (Modulo_Dashboard_KPI.gs)
 //  - Mantido 100% do que já existia: checklist por perfil,
 //    histórico, notificações, guias, particulares, despesas,
@@ -20,15 +43,16 @@
 //  ATENÇÃO — LEIA ANTES DE RODAR QUALQUER FUNÇÃO:
 //  setupInicial() CONTINUA existindo apenas para uma planilha NOVA
 //  e vazia (ele limpa o conteúdo das abas). Se sua planilha já tem
-//  dados de produção, NÃO rode setupInicial(). Rode migrarV6()
-//  em vez disso — ela só ADICIONA as abas/colunas novas, sem
-//  apagar nada do que já existe.
+//  dados de produção, NÃO rode setupInicial(). Rode migrarV6() e,
+//  em seguida, migrarV7() — cada uma só ADICIONA as abas/colunas
+//  novas da sua versão, sem apagar nada do que já existe. Se você
+//  já rodou migrarV6() antes, rode só migrarV7() agora.
 // ============================================================
 
 const CONFIG = {
   SPREADSHEET_ID: SpreadsheetApp.getActive().getId(),
-  META_ANUAL: 1200000,
-  VERSION: '6.0',
+  META_ANUAL: 1400000,
+  VERSION: '7.0',
   PERFIS: ['admin', 'gestor', 'recepcao', 'fisioterapeuta'],
   MAX_LOGIN_ATTEMPTS: 5,
   LOCKOUT_MINUTES: 5,
@@ -56,7 +80,9 @@ const CONFIG = {
     REGRAS_COMISSAO:   'Regras_Comissao',
     GLOSAS:            'Glosas',
     LOTES:             'Lotes',
-    DESPESAS_RECORRENTES: 'Despesas_Recorrentes'
+    DESPESAS_RECORRENTES: 'Despesas_Recorrentes',
+    // --- novas abas v7.0 ---
+    RECEITAS_RECORRENTES: 'Receitas_Recorrentes'
   }
 };
 
@@ -162,6 +188,54 @@ function migrarV6() {
   return { ok: true, log };
 }
 
+// ============================================================
+//  MIGRAÇÃO SEGURA v6 -> v7  (NÃO apaga dados existentes)
+//  Rode esta função UMA VEZ na sua planilha atual de produção,
+//  depois de já ter rodado migrarV6() em algum momento anterior.
+//  Adiciona: aba Receitas_Recorrentes (nova fonte de receita, ex:
+//  aluguel de espaço/piscina) e atualiza a meta anual para 1.400.000.
+// ============================================================
+function migrarV7() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const log = [];
+
+  const novasAbas = {
+    [CONFIG.SHEETS.RECEITAS_RECORRENTES]: ['id','descricao','pagador_tipo','pagador_id','pagador_nome','categoria','valor_padrao','regra_vencimento','forma_pgto','data_inicio','data_fim','ativo','observacao','criado_por','criado_em']
+  };
+  Object.keys(novasAbas).forEach(nome => {
+    let sh = ss.getSheetByName(nome);
+    if (!sh) {
+      sh = ss.insertSheet(nome);
+      const cab = novasAbas[nome];
+      sh.getRange(1,1,1,cab.length).setValues([cab]).setFontWeight('bold').setBackground('#0049AF').setFontColor('#FFFFFF');
+      sh.setFrozenRows(1);
+      log.push('Aba criada: ' + nome);
+    } else {
+      log.push('Aba já existia (mantida): ' + nome);
+    }
+  });
+
+  // popula com o cadastro inicial conhecido (aluguel de piscina da Yasmin),
+  // SOMENTE se a aba ainda estiver vazia — não sobrescreve edições manuais.
+  _popularReceitasRecorrentesPadrao(ss, log);
+
+  Logger.log(log.join('\n'));
+  return { ok: true, log, msg: 'Migração v7 concluída. Meta anual já está em ' + CONFIG.META_ANUAL + ' no código — não precisa alterar planilha para isso.' };
+}
+
+function _popularReceitasRecorrentesPadrao(ss, log) {
+  const sh = ss.getSheetByName(CONFIG.SHEETS.RECEITAS_RECORRENTES);
+  if (!sh) return;
+  if (sh.getLastRow() > 1) { log.push('Receitas_Recorrentes já tinha dados — não sobrescrito.'); return; }
+  const shProf = ss.getSheetByName(CONFIG.SHEETS.PROFISSIONAIS);
+  const profs = shProf && shProf.getLastRow() > 1 ? shProf.getRange(2,1,shProf.getLastRow()-1,2).getValues() : [];
+  const yasmin = profs.find(r => String(r[1]).toUpperCase().indexOf('YASMIN') !== -1);
+  const yasminId = yasmin ? yasmin[0] : '';
+  const yasminNome = yasmin ? yasmin[1] : 'YASMIN SILVA';
+  sh.appendRow(['REC001', 'Aluguel de Espaço — Piscina', 'profissional', yasminId, yasminNome, 'Aluguel de Espaço', 425, 'ATE_DIA_5', 'PIX', '', '', 'SIM', 'Cadastro inicial — confirmar periodicidade e forma de pagamento com a gestora.', 'SISTEMA', new Date()]);
+  log.push('Receita recorrente inicial cadastrada: Aluguel de Espaço — Piscina (Yasmin, R$425).');
+}
+
 // Garante que uma aba tenha determinadas colunas ao final do cabeçalho,
 // sem apagar linhas nem colunas existentes. Preenche células novas com ''.
 function _garantirColunas(ss, nomeAba, colunasNovas) {
@@ -229,8 +303,14 @@ function _popularDadosIniciais(ss) {
     ['PROF007','OSMALÍ SILVA','Fisioterapia Motora','PJ','','SIM',new Date(),'#f4a261','','','']
   ]);
 
+  // Catálogo completo — alinhado com a tabela real "VALORES_SERVIÇOS -
+  // INSTITUTO DA DOR (PARA VALIDAÇÃO)". Colunas: id, nome, categoria,
+  // valor_particular (sessão avulsa, referência), ativo, duracao_minutos.
+  // Pilates não tem "sessão avulsa" — usa matriz própria em
+  // getMatrizPrecoServico() (MODULO_CONFIG_FINANCEIRA.gs), o valor aqui é
+  // só um placeholder de referência para telas que esperam um número único.
   const shSv = ss.getSheetByName(CONFIG.SHEETS.SERVICOS);
-  shSv.getRange(2,1,8,6).setValues([
+  shSv.getRange(2,1,18,6).setValues([
     ['SRV001','FISIOTERAPIA MOTORA','Fisioterapia',130,'SIM',50],
     ['SRV002','FISIOTERAPIA PÉLVICA','Fisioterapia',200,'SIM',50],
     ['SRV003','RPG','Fisioterapia',180,'SIM',60],
@@ -239,6 +319,16 @@ function _popularDadosIniciais(ss) {
     ['SRV006','HOME CARE - FISIOTERAPIA','Home Care',180,'SIM',60],
     ['SRV007','QUIROPRAXIA','Terapia Manual',220,'SIM',50],
     ['SRV008','DRENAGEM LINFÁTICA','Estética',180,'SIM',60],
+    ['SRV009','FISIOTERAPIA AQUÁTICA','Fisioterapia',110,'SIM',50],
+    ['SRV010','DTM','Fisioterapia',180,'SIM',50],
+    ['SRV011','TRATAMENTO DA DOR','Terapia da Dor',220,'SIM',50],
+    ['SRV012','CONSULTA ORTOPEDISTA','Consulta',400,'SIM',30],
+    ['SRV013','INFILTRAÇÃO COM CORTICOIDE','Procedimento',300,'SIM',30],
+    ['SRV014','INFILTRAÇÃO COM ÁCIDO','Procedimento',1000,'SIM',30],
+    ['SRV015','LIBERAÇÃO','Terapia Manual',180,'SIM',40],
+    ['SRV016','NUTRIÇÃO','Consulta',200,'SIM',40],
+    ['SRV017','PILATES','Pilates',220,'SIM',50],
+    ['SRV018','PILATES - CASA/HOME','Pilates',210,'SIM',50],
   ]);
 
   const shCd = ss.getSheetByName(CONFIG.SHEETS.CHECKLIST_DEF);

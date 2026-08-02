@@ -1,45 +1,45 @@
 // ============================================================
-//  MODULO_IMPORTACAO_HISTORICO.gs — v1.0
+//  MODULO_IMPORTACAO_HISTORICO.gs — v2.0
 //
-//  Importa o histórico REAL de particulares e despesas de
-//  Jan-Jul/2026 fornecido pela gestora (planilhas
-//  PAGAMENTOS_PARTICULARES e DESPESAS), para o dashboard, a Curva
-//  ABC e as projeções terem volume real desde o primeiro uso do
-//  sistema em produção — em vez de começar do zero.
+//  CORREÇÃO CRÍTICA HERDADA: esta versão só funciona corretamente
+//  porque Código_Principal.gs (v7.1) corrigiu _sanNum(), _mesDoDate()
+//  e _dateStr() — que estavam quebradas desde o início do projeto
+//  (nunca existiam com a assinatura certa, ou truncavam valores em
+//  formato brasileiro como "1.234,56"). Se você está lendo isto e
+//  ainda vê números errados no dashboard depois de importar, confirme
+//  primeiro que substituiu Código_Principal.gs por esta versão.
 //
-//  NÃO é dado fictício de teste: são os lançamentos reais da clínica,
-//  já ocorridos, extraídos das planilhas de controle manual que a
-//  gestora usava antes deste sistema.
+//  NOVIDADES v2.0 (a pedido da gestora, depois de revisar o dashboard):
+//   1) Importa também as GUIAS DE CONVÊNIO reais extraídas do relatório
+//      de NFS-e emitidas (Jan-Jun/2026) — antes só os particulares e
+//      despesas eram importados, os convênios ficavam de fora.
+//   2) Ao final da importação, GERA AUTOMATICAMENTE os registros de
+//      Recebimentos mês a mês (particular + convênio), para o Fluxo
+//      de Caixa Histórico (getFluxoCaixaHistorico, em
+//      Modulo_Despesas_Recorrentes.gs) já aparecer preenchido assim
+//      que você importar, sem precisar rodar mais nada.
+//   3) Cadastra os 4 convênios que apareciam nas notas fiscais mas não
+//      existiam na aba Convênios (Banco do Brasil, CODEVASF, FUNASA,
+//      Associação de Habitação e Obras Públicas) — de forma idempotente,
+//      não duplica se já existirem.
 //
-//  IDEMPOTENTE: cada linha importada carrega uma "assinatura" (hash
-//  simples de paciente+data+valor para particulares, ou
-//  descrição+data+valor para despesas) gravada no campo observacao/
-//  origem_recorrente_id. Se você rodar esta função de novo, ela
-//  detecta que a assinatura já existe e pula a linha — não duplica.
+//  IMPORTANTE — O QUE O RELATÓRIO DE NFS-e REPRESENTA:
+//  O PDF de notas fiscais emitidas mostra o VALOR TOTAL faturado por
+//  convênio a cada mês (às vezes uma nota só consolida vários
+//  atendimentos), não guia por guia com paciente identificado. Por
+//  isso, a guia importada aqui é uma "guia consolidada mensal" por
+//  convênio — id de paciente vazio, observação deixando isso claro.
 //
-//  RODAR UMA VEZ: importarHistoricoReal(usuario) — direto no editor
-//  de Apps Script (selecione a função e clique em Executar), ou
-//  crie um botão temporário no admin que chame essa função.
+//  NÃO é dado fictício de teste: são os valores reais das notas
+//  fiscais já emitidas pela clínica (Prefeitura de Aracaju,
+//  competência 01/2026 a 06/2026).
 //
-//  O QUE ESTE MÓDULO NÃO FAZ (de propósito):
-//  - Não importa os dados do Controle de Pilates (Dez/24-Jun/26)
-//    porque aquela planilha mistura agenda + financeiro em um
-//    formato muito diferente das outras duas — precisa de um mapa
-//    de campos dedicado, a construir numa segunda etapa se a
-//    gestora quiser esse histórico também.
-//  - Não tenta casar "Profissional" do texto livre da planilha com
-//    o profissional_id exato do sistema quando o nome está abreviado
-//    ou não bate 100% (ex.: "MILA" vs "MILA PIRES") — nesses casos,
-//    grava o profissional_id em branco e o nome original em
-//    observacao, para você revisar e corrigir manualmente na aba
-//    Particulares depois. Isso é mais seguro do que adivinhar e
-//    associar ao profissional errado.
+//  IDEMPOTENTE: cada linha importada carrega um id determinístico —
+//  rodar de novo não duplica nada.
+//
+//  RODAR UMA VEZ: importarHistoricoReal(usuario)
 // ============================================================
 
-// Mapa de nomes abreviados usados nas planilhas reais -> nome completo
-// já cadastrado no sistema (ver Profissionais em Código_Principal.gs).
-// Ajuste/complete este mapa se a importação avisar "profissional não
-// encontrado" para algum nome.
 const MAPA_NOMES_PROFISSIONAL = {
   'MILA': 'MILA PIRES', 'MILA PIRES': 'MILA PIRES',
   'MARIANA': 'MARIANA MENDONÇA', 'MARIANA MENDONÇA': 'MARIANA MENDONÇA',
@@ -58,6 +58,19 @@ function _normalizarNomeProfissional(nomePlanilha) {
   const chave = String(nomePlanilha||'').trim().toUpperCase();
   return MAPA_NOMES_PROFISSIONAL[chave] || chave;
 }
+
+// ------------------------------------------------------------
+//  CONVÊNIOS QUE APARECEM NAS NOTAS FISCAIS MAS NÃO ESTAVAM
+//  CADASTRADOS NA ABA CONVÊNIOS. Cadastrados de forma idempotente
+//  na função importarHistoricoReal() abaixo.
+// ------------------------------------------------------------
+const CONVENIOS_FALTANTES = [
+  ['CONV013', 'ASSOC. HABITAÇÃO E OBRAS PÚBLICAS', 60],
+  ['CONV014', 'BANESE', 60],
+  ['CONV015', 'BANCO DO BRASIL', 60],
+  ['CONV016', 'CODEVASF', 60],
+  ['CONV017', 'FUNASA', 60]
+];
 
 // ------------------------------------------------------------
 //  DADOS REAIS — extraídos de PAGAMENTOS_PARTICULARES_-_2026.xlsx
@@ -226,10 +239,7 @@ const PARTICULARES_HISTORICO_REAL = [
 
 // ------------------------------------------------------------
 //  DADOS REAIS — extraídos de DESPESAS__1_.xlsx (abas Janeiro a
-//  Julho), SEÇÃO OPERACIONAL (aluguel, energia, contabilidade,
-//  impostos, manutenção etc.) — excluindo as duas linhas de
-//  subtotal por aba, que a planilha calcula sozinha e não são
-//  despesas novas.
+//  Julho), SEÇÃO OPERACIONAL, excluindo linhas de subtotal.
 //  Colunas: [descricao, valor, data]
 // ------------------------------------------------------------
 const DESPESAS_OPERACIONAIS_HISTORICO_REAL = [
@@ -468,14 +478,7 @@ const DESPESAS_OPERACIONAIS_HISTORICO_REAL = [
 
 // ------------------------------------------------------------
 //  DADOS REAIS — extraídos de DESPESAS__1_.xlsx, SEÇÃO
-//  "PROFISSIONAIS" (repasses/comissões já pagas a cada profissional
-//  PJ naquele mês, calculadas manualmente pela gestora antes deste
-//  sistema). Importados como despesas de categoria "Repasse
-//  Profissional (Histórico)" — servem também como conjunto de
-//  validação: compare estes valores com o que
-//  calcularComissaoGuia()/calcularComissaoParticular() calculariam
-//  para o mesmo período, para conferir se as regras de comissão
-//  cadastradas batem com o que a gestora vinha calculando à mão.
+//  "PROFISSIONAIS" (repasses/comissões já pagas).
 //  Colunas: [descricao, valor, data]
 // ------------------------------------------------------------
 const REPASSES_PROFISSIONAIS_HISTORICO_REAL = [
@@ -715,43 +718,122 @@ const REPASSES_PROFISSIONAIS_HISTORICO_REAL = [
 ];
 
 // ------------------------------------------------------------
+//  DADOS REAIS — extraídos do Relatório de NFS-e Emitidas
+//  (Prefeitura de Aracaju, competência 01/2026 a 06/2026),
+//  agregados por convênio × mês. Fonte: 59 notas fiscais emitidas
+//  para 10 convênios distintos.
+//  Colunas: [convenio_id, convenio_nome, mes, valor_total, qtd_notas]
+// ------------------------------------------------------------
+const GUIAS_CONVENIO_HISTORICO_REAL = [
+["CONV015","BANCO DO BRASIL","JUNHO",31713.54,2],
+  ["CONV016","CODEVASF","JUNHO",737.5,1],
+  ["CONV007","PETROBRAS","JUNHO",49003.6,1],
+  ["CONV004","CASSIND","JUNHO",1242.6,1],
+  ["CONV014","BANESE","JUNHO",949.48,1],
+  ["CONV006","BLUE","JUNHO",2610.0,1],
+  ["CONV013","ASSOC. HABITAÇÃO E OBRAS PÚBLICAS","JUNHO",473.0,1],
+  ["CONV002","AMIL","JUNHO",11840.0,1],
+  ["CONV015","BANCO DO BRASIL","MAIO",46890.43,2],
+  ["CONV017","FUNASA","MAIO",610.2,1],
+  ["CONV007","PETROBRAS","MAIO",51607.1,1],
+  ["CONV004","CASSIND","MAIO",207.06,1],
+  ["CONV014","BANESE","MAIO",674.6,1],
+  ["CONV006","BLUE","MAIO",1430.0,1],
+  ["CONV002","AMIL","MAIO",6520.0,1],
+  ["CONV015","BANCO DO BRASIL","ABRIL",26691.83,1],
+  ["CONV001","GEAP","ABRIL",11314.0,1],
+  ["CONV004","CASSIND","ABRIL",2878.61,2],
+  ["CONV007","PETROBRAS","ABRIL",59868.2,1],
+  ["CONV014","BANESE","ABRIL",963.6,1],
+  ["CONV017","FUNASA","ABRIL",210.2,1],
+  ["CONV006","BLUE","ABRIL",2030.0,1],
+  ["CONV013","ASSOC. HABITAÇÃO E OBRAS PÚBLICAS","ABRIL",236.5,1],
+  ["CONV002","AMIL","ABRIL",5440.0,1],
+  ["CONV015","BANCO DO BRASIL","MARÇO",34538.44,2],
+  ["CONV001","GEAP","MARÇO",19097.43,3],
+  ["CONV017","FUNASA","MARÇO",1371.0,1],
+  ["CONV004","CASSIND","MARÇO",393.49,2],
+  ["CONV007","PETROBRAS","MARÇO",48968.7,1],
+  ["CONV014","BANESE","MARÇO",481.8,1],
+  ["CONV006","BLUE","MARÇO",400.0,1],
+  ["CONV002","AMIL","MARÇO",7320.0,1],
+  ["CONV015","BANCO DO BRASIL","FEVEREIRO",26504.78,2],
+  ["CONV001","GEAP","FEVEREIRO",11006.99,1],
+  ["CONV004","CASSIND","FEVEREIRO",1242.6,1],
+  ["CONV017","FUNASA","FEVEREIRO",1934.39,1],
+  ["CONV016","CODEVASF","FEVEREIRO",218.3,1],
+  ["CONV007","PETROBRAS","FEVEREIRO",57032.6,1],
+  ["CONV014","BANESE","FEVEREIRO",481.8,1],
+  ["CONV013","ASSOC. HABITAÇÃO E OBRAS PÚBLICAS","FEVEREIRO",236.5,1],
+  ["CONV002","AMIL","FEVEREIRO",4240.0,1],
+  ["CONV015","BANCO DO BRASIL","JANEIRO",37436.2,2],
+  ["CONV007","PETROBRAS","JANEIRO",60386.0,1],
+  ["CONV001","GEAP","JANEIRO",14713.2,1],
+  ["CONV004","CASSIND","JANEIRO",621.3,1],
+  ["CONV014","BANESE","JANEIRO",674.6,1],
+  ["CONV017","FUNASA","JANEIRO",850.2,1],
+  ["CONV006","BLUE","JANEIRO",210.0,1],
+  ["CONV013","ASSOC. HABITAÇÃO E OBRAS PÚBLICAS","JANEIRO",1655.4,1],
+  ["CONV002","AMIL","JANEIRO",3780.0,1]
+];
+
+// ------------------------------------------------------------
 //  FUNÇÃO PRINCIPAL — idempotente
 // ------------------------------------------------------------
 function importarHistoricoReal(usuario) {
   try {
     _verificarUsuario(usuario, ['admin','gestor']);
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const resultado = { particulares: {importados:0, pulados:0, profissionalNaoEncontrado:[]}, despesasOperacionais: {importados:0, pulados:0}, repasses: {importados:0, pulados:0} };
+    const resultado = {
+      particulares: {importados:0, pulados:0, profissionalNaoEncontrado:[]},
+      despesasOperacionais: {importados:0, pulados:0},
+      repasses: {importados:0, pulados:0},
+      convenios: {cadastrados:0, jaExistiam:0},
+      guiasConvenio: {importadas:0, puladas:0},
+      recebimentosGerados: {gerados:0, pulados:0}
+    };
 
-    // -------- PARTICULARES --------
+    // -------- 0) CADASTRA CONVÊNIOS QUE FALTAVAM --------
+    const shConv = ss.getSheetByName(CONFIG.SHEETS.CONVENIOS);
+    const convExistentes = _getSheet(ss, CONFIG.SHEETS.CONVENIOS);
+    const idsConvExistentes = new Set(convExistentes.map(r => String(r[0])));
+    const nomesConvExistentes = new Set(convExistentes.map(r => String(r[1]).toUpperCase()));
+    CONVENIOS_FALTANTES.forEach(row => {
+      const [id, nome, prazo] = row;
+      if (idsConvExistentes.has(id) || nomesConvExistentes.has(nome.toUpperCase())) {
+        resultado.convenios.jaExistiam++;
+        return;
+      }
+      shConv.appendRow([id, nome, prazo, '', 'SIM', '', 'Cadastrado automaticamente pela importação de histórico — confirme o prazo de pagamento real.']);
+      resultado.convenios.cadastrados++;
+    });
+
+    // -------- 1) PARTICULARES --------
     const shPart = ss.getSheetByName(CONFIG.SHEETS.PARTICULARES);
-    const listasProf = _getSheet(ss, CONFIG.SHEETS.PROFISSIONAIS); // [id, nome, ...]
+    const listasProf = _getSheet(ss, CONFIG.SHEETS.PROFISSIONAIS);
     const profPorNome = {};
     listasProf.forEach(r => { profPorNome[String(r[1]).toUpperCase()] = { id: r[0], nome: r[1] }; });
 
-    const listasServ = _getSheet(ss, CONFIG.SHEETS.SERVICOS); // [id, nome, ...]
+    const listasServ = _getSheet(ss, CONFIG.SHEETS.SERVICOS);
     const servPorNome = {};
     listasServ.forEach(r => { servPorNome[String(r[1]).toUpperCase()] = { id: r[0], nome: r[1] }; });
 
-    // assinaturas já existentes (para não duplicar em reexecução)
     const partExistentes = _getSheet(ss, CONFIG.SHEETS.PARTICULARES);
-    const assinaturasPart = new Set(partExistentes.map(r => String(r[0]))); // usa o próprio id determinístico como chave de dedup
+    const idsPartExistentes = new Set(partExistentes.map(r => String(r[0])));
 
     PARTICULARES_HISTORICO_REAL.forEach(row => {
       const [paciente, data, especialidade, profissionalTxt, valor, formaPgto, quantidade] = row;
-      // id determinístico baseado no conteúdo, para a importação ser idempotente
-      // (mesma linha sempre gera o mesmo id, então rodar 2x não duplica)
       const idDeterministico = 'HIST-PART-' + Utilities.base64EncodeWebSafe(
         Utilities.newBlob(paciente+'|'+data+'|'+valor+'|'+quantidade).getBytes()
       ).slice(0,16);
-      if (assinaturasPart.has(idDeterministico)) { resultado.particulares.pulados++; return; }
+      if (idsPartExistentes.has(idDeterministico)) { resultado.particulares.pulados++; return; }
 
       const nomeNormalizado = _normalizarNomeProfissional(profissionalTxt);
       const profInfo = profPorNome[nomeNormalizado];
       if (!profInfo) resultado.particulares.profissionalNaoEncontrado.push(profissionalTxt);
 
       const servInfo = servPorNome[String(especialidade).toUpperCase()] || null;
-      const mes = _mesDoDate(new Date(data));
+      const mes = _mesDoDate(data);
 
       shPart.appendRow([
         idDeterministico, data, mes, '', paciente,
@@ -764,7 +846,7 @@ function importarHistoricoReal(usuario) {
       resultado.particulares.importados++;
     });
 
-    // -------- DESPESAS OPERACIONAIS --------
+    // -------- 2) DESPESAS OPERACIONAIS --------
     const shDesp = ss.getSheetByName(CONFIG.SHEETS.DESPESAS);
     const despExistentes = _getSheet(ss, CONFIG.SHEETS.DESPESAS);
     const idsDespExistentes = new Set(despExistentes.map(r => String(r[0])));
@@ -775,7 +857,7 @@ function importarHistoricoReal(usuario) {
         Utilities.newBlob(descricao+'|'+data+'|'+valor).getBytes()
       ).slice(0,16);
       if (idsDespExistentes.has(idDeterministico)) { resultado.despesasOperacionais.pulados++; return; }
-      const mes = _mesDoDate(new Date(data));
+      const mes = _mesDoDate(data);
       shDesp.appendRow([
         idDeterministico, data, mes, 'Histórico Importado', descricao, '', valor, '', 'FIXO', 'Pago',
         data, data, '', 'Importado do histórico real (planilha DESPESAS, seção operacional).',
@@ -784,14 +866,14 @@ function importarHistoricoReal(usuario) {
       resultado.despesasOperacionais.importados++;
     });
 
-    // -------- REPASSES PROFISSIONAIS (histórico) --------
+    // -------- 3) REPASSES PROFISSIONAIS (histórico) --------
     REPASSES_PROFISSIONAIS_HISTORICO_REAL.forEach(row => {
       const [descricao, valor, data] = row;
       const idDeterministico = 'HIST-REPASSE-' + Utilities.base64EncodeWebSafe(
         Utilities.newBlob(descricao+'|'+data+'|'+valor).getBytes()
       ).slice(0,16);
       if (idsDespExistentes.has(idDeterministico)) { resultado.repasses.pulados++; return; }
-      const mes = _mesDoDate(new Date(data));
+      const mes = _mesDoDate(data);
       shDesp.appendRow([
         idDeterministico, data, mes, 'Repasse Profissional (Histórico)', descricao, '', valor, '', 'FIXO', 'Pago',
         data, data, '', 'Importado do histórico real (planilha DESPESAS, seção PROFISSIONAIS). Use para validar se calcularComissaoGuia/calcularComissaoParticular batem com o valor que a gestora calculava manualmente neste período.',
@@ -800,10 +882,73 @@ function importarHistoricoReal(usuario) {
       resultado.repasses.importados++;
     });
 
+    // -------- 4) GUIAS DE CONVÊNIO (agregadas por mês, do relatório de NFS-e) --------
+    const shGuias = ss.getSheetByName(CONFIG.SHEETS.GUIAS);
+    const guiasExistentes = _getSheet(ss, CONFIG.SHEETS.GUIAS);
+    const idsGuiasExistentes = new Set(guiasExistentes.map(r => String(r[0])));
+    const convAtualizados = _getSheet(ss, CONFIG.SHEETS.CONVENIOS);
+    const convPorId = {};
+    convAtualizados.forEach(r => { convPorId[String(r[0])] = { id:r[0], nome:r[1], prazo:r[2] }; });
+
+    GUIAS_CONVENIO_HISTORICO_REAL.forEach(row => {
+      const [convenioId, convenioNome, mesTexto, valorTotal, qtdNotas] = row;
+      const idDeterministico = 'HIST-GUIA-' + Utilities.base64EncodeWebSafe(
+        Utilities.newBlob(convenioId+'|'+mesTexto+'|'+valorTotal).getBytes()
+      ).slice(0,16);
+      if (idsGuiasExistentes.has(idDeterministico)) { resultado.guiasConvenio.puladas++; return; }
+
+      const convInfo = convPorId[convenioId] || { nome: convenioNome, prazo: 60 };
+      const MESES = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+      const mesIdx = MESES.indexOf(mesTexto);
+      const ano = 2026;
+      const dataRef = new Date(ano, mesIdx, 28);
+      const dataStr = _dateStr(dataRef);
+      const prazoDias = _sanNum(convInfo.prazo, 60);
+      const dataPrevPgto = new Date(ano, mesIdx, 28 + prazoDias);
+
+      shGuias.appendRow([
+        idDeterministico, dataStr, mesTexto, convenioId, convInfo.nome,
+        '', 'Guia consolidada mensal (' + qtdNotas + ' nota(s) fiscal(is))',
+        '', '', '', '', '',
+        valorTotal, prazoDias, dataStr, _dateStr(dataPrevPgto), dataStr, 'Pago', 0,
+        'Importado do relatório de NFS-e Emitidas (Prefeitura de Aracaju, competência ' + mesTexto + '/2026). Valor consolidado de ' + qtdNotas + ' nota(s) fiscal(is) — não há detalhamento por paciente neste relatório. Marcado como "Pago" porque nota fiscal emitida já reflete faturamento reconhecido; ajuste o status se a gestora souber que algum valor ainda estava pendente de recebimento nesse período.',
+        'IMPORTAÇÃO HISTÓRICO', new Date(), ''
+      ]);
+      resultado.guiasConvenio.importadas++;
+    });
+
+    // -------- 5) GERA RECEBIMENTOS MÊS A MÊS (para o Fluxo de Caixa Histórico) --------
+    const shReceb = ss.getSheetByName(CONFIG.SHEETS.RECEBIMENTOS);
+    const recebExistentes = _getSheet(ss, CONFIG.SHEETS.RECEBIMENTOS);
+    const idsRecebExistentes = new Set(recebExistentes.map(r => String(r[0])));
+    const MESES_ORDEM = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+
+    MESES_ORDEM.slice(0,7).forEach(mesTx => {
+      const totalParticularMes = getParticulares({mes:mesTx}).reduce((s,p)=>s+_sanNum(p.valor),0);
+      if (totalParticularMes > 0) {
+        const idP = 'HIST-RECEB-PART-' + mesTx;
+        if (!idsRecebExistentes.has(idP)) {
+          shReceb.appendRow([idP, _dateStr(new Date(2026, MESES_ORDEM.indexOf(mesTx), 28)), 'Particular (Consolidado Histórico)', '', '', '', totalParticularMes, '', mesTx, 'Soma consolidada dos lançamentos particulares importados do histórico real para este mês.', new Date()]);
+          resultado.recebimentosGerados.gerados++;
+        } else resultado.recebimentosGerados.pulados++;
+      }
+      const totalConvenioMes = getGuias({mes:mesTx}).reduce((s,g)=>s+_sanNum(g.valor_total)-_sanNum(g.valor_glosado),0);
+      if (totalConvenioMes > 0) {
+        const idC = 'HIST-RECEB-CONV-' + mesTx;
+        if (!idsRecebExistentes.has(idC)) {
+          shReceb.appendRow([idC, _dateStr(new Date(2026, MESES_ORDEM.indexOf(mesTx), 28)), 'Convênio (Consolidado Histórico)', '', '', '', totalConvenioMes, '', mesTx, 'Soma consolidada das guias de convênio importadas do relatório de NFS-e para este mês.', new Date()]);
+          resultado.recebimentosGerados.gerados++;
+        } else resultado.recebimentosGerados.pulados++;
+      }
+    });
+
     _log(usuario.nome, 'IMPORTAR_HISTORICO_REAL',
       `Particulares: ${resultado.particulares.importados} importados/${resultado.particulares.pulados} já existiam | ` +
       `Despesas: ${resultado.despesasOperacionais.importados} importadas/${resultado.despesasOperacionais.pulados} já existiam | ` +
-      `Repasses: ${resultado.repasses.importados} importados/${resultado.repasses.pulados} já existiam`);
+      `Repasses: ${resultado.repasses.importados} importados/${resultado.repasses.pulados} já existiam | ` +
+      `Convênios cadastrados: ${resultado.convenios.cadastrados} | ` +
+      `Guias de convênio: ${resultado.guiasConvenio.importadas} importadas/${resultado.guiasConvenio.puladas} já existiam | ` +
+      `Recebimentos consolidados: ${resultado.recebimentosGerados.gerados} gerados/${resultado.recebimentosGerados.pulados} já existiam`);
 
     return { ok:true, resultado };
   } catch(e) { return { ok:false, msg:e.toString() }; }

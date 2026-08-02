@@ -256,3 +256,99 @@ function getProjecaoFluxoCaixa(qtdMeses, usuario) {
     return { ok:true, meses, mediaParticularMensal, aviso: 'Receita de particulares é uma ESTIMATIVA baseada na média dos últimos 3 meses fechados — não é garantida. Despesas do tipo VARIAVEL sem valor confirmado entram como R$0,00 até você preencher.' };
   } catch(e) { return { ok:false, msg:e.toString() }; }
 }
+
+// ============================================================
+//  FLUXO DE CAIXA HISTÓRICO — v7.1 (nova)
+//
+//  Diferente de getProjecaoFluxoCaixa() (que só olha do mês atual
+//  em diante), esta função monta o fluxo de caixa REALIZADO dos
+//  meses passados: quanto entrou (convênio + particular + receitas
+//  recorrentes), quanto saiu (despesas), e o saldo de cada mês —
+//  usando dados já lançados no sistema, não estimativa.
+//
+//  Retorna também, para os meses que já têm despesa recorrente
+//  cadastrada com valor_padrao (tipo FIXO), uma comparação
+//  "planejado x realizado": planejado = soma dos valor_padrao das
+//  recorrentes ativas naquele mês; realizado = soma do que
+//  efetivamente foi lançado em Despesas para aquele mês. Isso ajuda
+//  a gestora ver se gastou mais ou menos do que o esperado.
+// ============================================================
+function getFluxoCaixaHistorico(qtdMesesPassados, usuario) {
+  try {
+    _verificarUsuario(usuario, ['admin','gestor']);
+    const MESES = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+    const hoje = new Date();
+    const n = qtdMesesPassados || 12;
+
+    const recorrentes = getDespesasRecorrentes(usuario).filter(r => r.ativo === 'SIM');
+
+    const meses = [];
+    for (let i = n; i >= 0; i--) {
+      const d = new Date(hoje.getFullYear(), hoje.getMonth()-i, 1);
+      const mesTx = MESES[d.getMonth()];
+      const ano = d.getFullYear();
+
+      const particularesMes = getParticulares({mes:mesTx}).filter(p => new Date(p.data).getFullYear() === ano);
+      const guiasMes = getGuias({mes:mesTx}).filter(g => new Date(g.data).getFullYear() === ano);
+      const despesasMes = getDespesas({mes:mesTx}).filter(x => new Date(x.data||x.data_vencimento).getFullYear() === ano);
+      const receitasRecMes = getResumoReceitasRecorrentes({mes:mesTx}, usuario);
+
+      const entradaParticular = particularesMes.reduce((s,p)=>s+_sanNum(p.valor),0);
+      const entradaConvenio = guiasMes.reduce((s,g)=>s+_sanNum(g.valor_total)-_sanNum(g.valor_glosado),0);
+      const entradaRecorrente = receitasRecMes.ok ? receitasRecMes.total : 0;
+      const totalEntradas = entradaParticular + entradaConvenio + entradaRecorrente;
+      const totalSaidas = despesasMes.reduce((s,x)=>s+_sanNum(x.valor),0);
+      const saldoMes = totalEntradas - totalSaidas;
+
+      // planejado x realizado (só para despesas do tipo FIXO recorrente)
+      const planejadoDespesa = recorrentes.filter(r => r.tipo==='FIXO' &&
+        (!r.data_inicio || new Date(r.data_inicio) <= new Date(ano, d.getMonth()+1, 0)) &&
+        (!r.data_fim || new Date(r.data_fim) >= new Date(ano, d.getMonth(), 1))
+      ).reduce((s,r)=>s+_sanNum(r.valor_padrao),0);
+
+      meses.push({
+        mes: mesTx, ano, ehMesAtual: (i===0),
+        entradaParticular, entradaConvenio, entradaRecorrente, totalEntradas,
+        totalSaidas, saldoMes,
+        planejadoDespesa, realizadoDespesa: totalSaidas,
+        diferencaDespesa: totalSaidas - planejadoDespesa,
+        qtdLancamentosParticular: particularesMes.length, qtdGuias: guiasMes.length
+      });
+    }
+
+    const saldoAcumulado = meses.reduce((s,m)=>s+m.saldoMes,0);
+    return { ok:true, meses, saldoAcumulado };
+  } catch(e) { return { ok:false, meses:[], msg:e.toString() }; }
+}
+
+// ============================================================
+//  PROJEÇÃO FUTURA COM BASE NO HISTÓRICO — v7.1
+//
+//  Junta o realizado (getFluxoCaixaHistorico) com a projeção futura
+//  (getProjecaoFluxoCaixa), numa única série temporal contínua, para
+//  o dashboard poder desenhar um gráfico único: "realizado até aqui"
+//  seguido de "projeção para os próximos meses" — útil para visualizar
+//  a tendência sem trocar de gráfico.
+// ============================================================
+function getFluxoCaixaCompleto(qtdMesesPassados, qtdMesesFuturos, usuario) {
+  try {
+    _verificarUsuario(usuario, ['admin','gestor']);
+    const historico = getFluxoCaixaHistorico(qtdMesesPassados||6, usuario);
+    const projecao = getProjecaoFluxoCaixa(qtdMesesFuturos||3, usuario);
+    if (!historico.ok) return { ok:false, msg:historico.msg };
+
+    const serieHistorico = historico.meses.map(m => ({
+      mes: m.mes, ano: m.ano, tipo: 'realizado',
+      entradas: m.totalEntradas, saidas: m.totalSaidas, saldo: m.saldoMes
+    }));
+    const serieProjecao = (projecao.ok ? projecao.meses : []).filter(m => {
+      // remove o mês atual da projeção se já vier no histórico, pra não duplicar no gráfico
+      return !serieHistorico.some(h => h.mes === m.mes && h.ano === m.ano);
+    }).map(m => ({
+      mes: m.mes, ano: m.ano, tipo: 'projetado',
+      entradas: m.receitaTotalEstimada, saidas: m.despesasPrevistas, saldo: m.lucroProjetado
+    }));
+
+    return { ok:true, serie: serieHistorico.concat(serieProjecao), aviso: projecao.aviso };
+  } catch(e) { return { ok:false, serie:[], msg:e.toString() }; }
+}

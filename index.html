@@ -82,7 +82,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 .login-demo{margin-top:14px;text-align:center;font-size:.66rem;color:var(--text-3)}
 
 /* APP SHELL */
-.app-shell{display:grid;grid-template-columns:var(--sw) 1fr;grid-template-rows:var(--th) 1fr;grid-template-areas:"sb tb""sb mc";min-height:100vh;display:none}
+.app-shell{display:grid;grid-template-columns:var(--sw) 1fr;grid-template-rows:var(--th) 1fr;grid-template-areas:"sb tb""sb mc";min-height:100vh}
 
 /* SIDEBAR */
 .sidebar{grid-area:sb;background:linear-gradient(195deg,#001a4d 0%,#002a72 55%,#003a8c 100%);
@@ -427,7 +427,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 <body>
 
 <!-- LOGIN -->
-<div id="tela-login" class="login-shell">
+<div id="tela-login" class="login-shell" style="display:none">
   <div class="lo1"></div><div class="lo2"></div><div class="lo3"></div>
   <div class="login-card">
     <div class="lc-logo">
@@ -520,6 +520,9 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
         </div>
         <div class="nav-item" data-page="despesas" onclick="goPage('despesas')">
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Despesas
+        </div>
+        <div class="nav-item" data-page="contas-pagar" onclick="goPage('contas-pagar')">
+          <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h6M7 16h4"/></svg>Contas a Pagar
         </div>
         <div class="nav-item" data-page="fluxo" onclick="goPage('fluxo')">
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>Fluxo de Caixa
@@ -898,6 +901,33 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
       </div>
     </section>
 
+    <!-- CONTAS A PAGAR -->
+    <section class="page" id="page-contas-pagar">
+      <div class="page-hd"><div><h2>Contas a Pagar</h2><div class="page-hd-sub">Controle de saídas + Cadastro de saídas</div></div><button class="btn btn-p btn-sm" onclick="abrirFormContasPagar()">Nova Saída</button></div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi-card red"><div class="kpi-accent"></div><div class="kpi-lbl">Total de Saídas</div><div class="kpi-val" id="cp-total">—</div></div>
+        <div class="kpi-card amber"><div class="kpi-accent"></div><div class="kpi-lbl">Pendente</div><div class="kpi-val" id="cp-pendente">—</div></div>
+        <div class="kpi-card"><div class="kpi-accent"></div><div class="kpi-lbl">Pago</div><div class="kpi-val" id="cp-pago">—</div></div>
+        <div class="kpi-card red"><div class="kpi-accent"></div><div class="kpi-lbl">Vencido</div><div class="kpi-val" id="cp-vencido">—</div></div>
+      </div>
+      <div id="cp-form" class="panel" style="display:none">
+        <div class="ph"><span class="pt">Cadastro de Saída</span><button class="btn btn-g btn-xs" onclick="el('cp-form').style.display='none'">Fechar</button></div>
+        <div class="pb"><div class="fg fg3">
+          <div class="ff"><label>Data <span class="req">*</span></label><input type="date" id="cp-data"></div>
+          <div class="ff"><label>Vencimento</label><input type="date" id="cp-venc"></div>
+          <div class="ff"><label>Conta / Categoria <span class="req">*</span></label><select id="cp-cat"><option value="">Selecione...</option></select></div>
+          <div class="ff"><label>Descrição <span class="req">*</span></label><input type="text" id="cp-desc" placeholder="Ex.: aluguel, fornecedor..."></div>
+          <div class="ff"><label>Fornecedor</label><input type="text" id="cp-forn"></div>
+          <div class="ff"><label>Valor (R$) <span class="req">*</span></label><input type="number" id="cp-val" step="0.01" min="0"></div>
+          <div class="ff"><label>Status</label><select id="cp-status"><option value="PENDENTE">Pendente</option><option value="PAGO">Pago</option><option value="AGENDADO">Agendado</option></select></div>
+          <div class="ff"><label>Forma de pagamento</label><input type="text" id="cp-forma" placeholder="PIX, boleto..."></div>
+          <div class="ff"><label>Data do pagamento</label><input type="date" id="cp-pgto"></div>
+          <div class="ff"><label>Observação</label><input type="text" id="cp-obs"></div>
+        </div><div class="form-actions"><button class="btn btn-g" onclick="el('cp-form').style.display='none'">Cancelar</button><button class="btn btn-p" onclick="salvarContaPagar()">Cadastrar Saída</button></div></div>
+      </div>
+      <div class="panel"><div class="ph"><span class="pt">Saídas Cadastradas</span><button class="btn btn-g btn-xs" onclick="carregarContasPagar()">Atualizar</button></div><div id="cp-lw" class="lw"><div class="spin"></div></div><div id="cp-lista" style="display:none"></div></div>
+    </section>
+
     <!-- FLUXO -->
     <section class="page" id="page-fluxo">
       <div class="page-hd"><div><h2>Fluxo de Caixa</h2><div class="page-hd-sub">Histórico realizado, projeção para os próximos meses e comparação planejado × realizado</div></div><button class="btn btn-g btn-sm" onclick="carregarFluxo()"><svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Atualizar</button></div>
@@ -1121,18 +1151,21 @@ function logout(){
 // ================================================================
 //  NAVIGATION
 // ================================================================
+function botaoAcionado(){
+  return document.activeElement && document.activeElement.tagName==='BUTTON' ? document.activeElement : {disabled:false,textContent:''};
+}
 const TITULOS = {
   dashboard:'Dashboard',checklist:'Meu Checklist Diário',conformidade:'Relatório de Equipe',
   'checklist-config':'Configurar Checklist','novo-particular':'Novo Particular',
   'nova-guia':'Nova Guia Convênio',
   particulares:'Lançamentos Particulares',guias:'Guias e Convênios',
-  'a-receber':'A Receber',faturamento:'Faturamento',despesas:'Despesas',fluxo:'Fluxo de Caixa',desempenho:'Desempenho da Equipe',
+  'a-receber':'A Receber',faturamento:'Faturamento',despesas:'Despesas','contas-pagar':'Contas a Pagar',fluxo:'Fluxo de Caixa',desempenho:'Desempenho da Equipe',
   'curva-abc':'Curva ABC de Faturamento',
   pacientes:'Pacientes',profissionais:'Profissionais',usuarios:'Usuários e Acesso',auditoria:'Auditoria LGPD',
   'config-financeira':'Configuração de Preços e Taxas'
 };
 const PERM_ADMIN = ['usuarios','auditoria','config-financeira'];
-const PERM_GESTOR = ['particulares','guias','a-receber','faturamento','despesas','fluxo','desempenho','curva-abc','pacientes','profissionais','conformidade','checklist-config'];
+const PERM_GESTOR = ['particulares','guias','a-receber','faturamento','despesas','contas-pagar','fluxo','desempenho','curva-abc','pacientes','profissionais','conformidade','checklist-config'];
 
 function goPage(id){
   if(!APP.user)return;
@@ -1152,7 +1185,7 @@ function goPage(id){
     dashboard:renderDashboard,checklist:renderChecklistPage,conformidade:renderConformidade,
     'checklist-config':renderChecklistConfig,'novo-particular':popularDropsPart,
     'nova-guia':popularDropsGuia,particulares:carregarParticulares,
-    guias:carregarGuias,'a-receber':carregarAReceber,faturamento:carregarFaturamento,despesas:carregarDespesas,
+    guias:carregarGuias,'a-receber':carregarAReceber,faturamento:carregarFaturamento,despesas:carregarDespesas,'contas-pagar':carregarContasPagar,
     fluxo:carregarFluxo,desempenho:renderDesempenho,'curva-abc':renderCurvaABC,pacientes:carregarPacs,profissionais:carregarProfs,
     usuarios:carregarUsrs,auditoria:carregarLog,'config-financeira':carregarConfigFinanceira
   };
@@ -1409,7 +1442,7 @@ function enviarChecklist(){
     const st=_chkLocal[def.id]||{};
     return{checklist_id:def.id,titulo:def.titulo,concluido:st.concluido||false,obrigatorio:def.obrigatorio,observacao:st.obs||''};
   });
-  const btn=event.target;btn.disabled=true;btn.textContent='Enviando...';
+  const btn=botaoAcionado();btn.disabled=true;btn.textContent='Enviando...';
   google.script.run
     .withSuccessHandler(res=>{
       btn.disabled=false;btn.innerHTML='<svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Enviar Checklist do Dia';
@@ -1892,7 +1925,7 @@ function salvarParticular(){
     obsExtra=` | ${r.maquininha}, taxa ${r.pctTaxa.toFixed(2)}% (${fmt(r.taxaRs)}), líquido ${fmt(r.liquido)}`;
   }
   const dados={data,paciente_id:selPac.value||'',paciente_nome:novo||selPac.options[selPac.selectedIndex]?.dataset?.n||'',profissional_id:selProf.value,profissional_nome:selProf.options[selProf.selectedIndex]?.dataset?.n||'',servico_id:selSrv.value,servico_nome:selSrv.options[selSrv.selectedIndex]?.dataset?.n||'',valor:parseFloat(val),forma_pgto:formaDetalhada,quantidade:parseInt(el('p-qtd').value||1),tipo_qtd:el('p-tipo').value,observacao:san(el('p-obs').value)+obsExtra};
-  const btn=event.target;btn.disabled=true;btn.textContent='Salvando...';
+  const btn=botaoAcionado();btn.disabled=true;btn.textContent='Salvando...';
   google.script.run
     .withSuccessHandler(res=>{
       btn.disabled=false;btn.innerHTML='<svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Lançamento';
@@ -1955,7 +1988,7 @@ function salvarGuia(){
   rows.forEach(r=>{const id=r.id.replace('ig-','');const cs2=el('ig-cod-'+id),o=cs2?.options[cs2.selectedIndex];const cod=o?.dataset?.c||'',desc=el('ig-desc-'+id)?.value||'';const qtd=parseInt(el('ig-qtd-'+id)?.value||1),val=parseFloat(el('ig-val-'+id)?.value||0);if(!cod||val<=0)ok=false;itens.push({codigo:cod,descricao:desc,quantidade:qtd,valor_unitario:val});});
   if(!ok){toast('Preencha código e valor em todos os itens.','err');return;}
   const dados={data:el('g-data').value,convenio_id:cs.value,convenio_nome:cs.options[cs.selectedIndex]?.dataset?.n||'',paciente_id:ps.value,paciente_nome:ps.options[ps.selectedIndex]?.dataset?.n||'',profissional_id:prs.value,profissional_nome:prs.options[prs.selectedIndex]?.dataset?.n||'',lote:el('g-lote').value,protocolo:el('g-prot').value,num_nf:el('g-nf').value,data_envio:el('g-envio').value,prazo_dias:el('g-prazo').value,observacao:san(el('g-obs').value)};
-  const btn=event.target;btn.disabled=true;btn.textContent='Salvando...';
+  const btn=botaoAcionado();btn.disabled=true;btn.textContent='Salvando...';
   google.script.run
     .withSuccessHandler(res=>{
       btn.disabled=false;btn.textContent='Salvar Guia';
@@ -2061,7 +2094,7 @@ function salvarReceitaRecorrenteForm(){
     valor_padrao: valor, regra_vencimento: el('rr-venc').value, forma_pgto: el('rr-forma').value,
     ativo:'SIM', observacao: el('rr-obs').value.trim()
   };
-  const btn=event.target; btn.disabled=true; btn.textContent='Salvando...';
+  const btn=botaoAcionado(); btn.disabled=true; btn.textContent='Salvando...';
   google.script.run.withSuccessHandler(res=>{
     btn.disabled=false; btn.textContent='Salvar';
     if(res.ok){toast('Receita recorrente cadastrada!','ok');el('form-receita-recorrente').style.display='none';['rr-desc','rr-valor','rr-obs'].forEach(id=>el(id).value='');carregarReceitasRecorrentes();}
@@ -2132,7 +2165,7 @@ function salvarPrecosPacote(){
     if(!precos[srv])precos[srv]={};
     precos[srv][pac]=parseFloat(val);
   });
-  const btn=event.target;btn.disabled=true;btn.textContent='Salvando...';
+  const btn=botaoAcionado();btn.disabled=true;btn.textContent='Salvando...';
   google.script.run.withSuccessHandler(res=>{
     btn.disabled=false;btn.innerHTML='<svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Tabela de Preços';
     if(res.ok){toast('Tabela de preços salva!','ok');carregarPrecosPacoteParaForm();}else toast('Erro: '+san(res.msg),'err');
@@ -2190,7 +2223,7 @@ function salvarTaxasCartao(){
     card.querySelectorAll('.fee-credito').forEach(inp=>{if(inp.value!=='')credito[inp.dataset.parc]=parseFloat(inp.value);});
     taxas[nome]={debito,antecipacao,credito};
   });
-  const btn=event.target;btn.disabled=true;btn.textContent='Salvando...';
+  const btn=botaoAcionado();btn.disabled=true;btn.textContent='Salvando...';
   google.script.run.withSuccessHandler(res=>{
     btn.disabled=false;btn.innerHTML='<svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Taxas';
     if(res.ok){toast('Taxas salvas!','ok');carregarTaxasCartaoParaForm();}else toast('Erro: '+san(res.msg),'err');
@@ -2232,7 +2265,7 @@ function salvarMatrizPilates(){
     if(!matriz[srv][plano]) matriz[srv][plano]={};
     matriz[srv][plano][freq]=parseFloat(val);
   });
-  const btn=event.target; btn.disabled=true; btn.textContent='Salvando...';
+  const btn=botaoAcionado(); btn.disabled=true; btn.textContent='Salvando...';
   google.script.run.withSuccessHandler(res=>{
     btn.disabled=false; btn.innerHTML='<svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Matriz do Pilates';
     if(res.ok){toast('Matriz de preços do Pilates salva!','ok');carregarMatrizPilates();}else toast('Erro: '+san(res.msg),'err');
@@ -2279,7 +2312,7 @@ function salvarConfigTaxaGuia(){
     if(de&&ate&&valor) faixas.push({de,ate,valor});
   });
   const profissionais_ids=Array.from(document.querySelectorAll('.prof-taxa-guia-chk:checked')).map(c=>c.value);
-  const btn=event.target; btn.disabled=true; btn.textContent='Salvando...';
+  const btn=botaoAcionado(); btn.disabled=true; btn.textContent='Salvando...';
   google.script.run.withSuccessHandler(res=>{
     btn.disabled=false; btn.innerHTML='<svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>Salvar Configuração';
     if(res.ok){toast('Configuração de taxa por faixa salva!','ok');carregarConfigTaxaGuia();}else toast('Erro: '+san(res.msg),'err');
@@ -2315,7 +2348,7 @@ function salvarDesp(){
   const data=el('d-data').value,cat=el('d-cat').value,desc=el('d-desc').value,val=el('d-val').value;
   if(!data||!cat||!desc||!val||val<=0){toast('Preencha Data, Categoria, Descrição e Valor.','err');return;}
   const dados={data,categoria:cat,descricao:san(desc),fornecedor:san(el('d-forn').value),valor:parseFloat(val),status:el('d-status').value,tipo:el('d-tipo').value,data_vencimento:el('d-venc').value,data_pgto:el('d-pgto').value,forma_pgto:el('d-forma').value,observacao:san(el('d-obs').value)};
-  const btn=event.target;btn.disabled=true;btn.textContent='Salvando...';
+  const btn=botaoAcionado();btn.disabled=true;btn.textContent='Salvando...';
   google.script.run
     .withSuccessHandler(res=>{
       btn.disabled=false;btn.textContent='Salvar Despesa';
@@ -2338,6 +2371,46 @@ function carregarDespesas(){
     const smap={PAGO:`<span class="bdg bdg-green">Pago</span>`,PENDENTE:`<span class="bdg bdg-amber">Pendente</span>`,AGENDADO:`<span class="bdg bdg-purple">Agendado</span>`};
     el('desp-lista').innerHTML=`<div class="tw"><table class="tbl"><thead><tr><th>Data</th><th>Categoria</th><th>Tipo</th><th>Descrição</th><th>Fornecedor</th><th>Valor</th><th>Status</th><th>Comp.</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtD(r.data)}</td><td><span class="bdg bdg-blue">${r.categoria}</span></td><td><span class="bdg ${r.tipo==='FIXO'?'bdg-teal':r.tipo==='VARIÁVEL'?'bdg-amber':'bdg-purple'}">${r.tipo}</span></td><td>${san(r.descricao)}</td><td>${san(r.fornecedor||'—')}</td><td style="font-weight:600">${fmt(r.valor)}</td><td>${smap[r.status]||r.status}</td><td>${r.comprovante_url?`<a href="${r.comprovante_url}" target="_blank" rel="noopener noreferrer" style="color:var(--teal)">Ver</a>`:'—'}</td></tr>`).join('')}</tbody><tfoot><tr><td colspan="5"><strong>TOTAL</strong></td><td><strong>${fmt(tot)}</strong></td><td colspan="2"></td></tr></tfoot></table></div>`;
   }).withFailureHandler(e=>{el('desp-lw').style.display='none';el('desp-lista').innerHTML=`<div class="alert alert-err">${e.message}</div>`;el('desp-lista').style.display='block';}).getDespesas({mes:el('filtro-mes').value});
+}
+
+// ================================================================
+//  CONTAS A PAGAR — controle de saídas
+// ================================================================
+function abrirFormContasPagar(){
+  el('cp-form').style.display='block';
+  if(!el('cp-data').value) el('cp-data').value=today();
+  carregarCategoriasContasPagar();
+  el('cp-form').scrollIntoView({behavior:'smooth'});
+}
+function carregarCategoriasContasPagar(){
+  google.script.run.withSuccessHandler(contas=>{
+    const sel=el('cp-cat'); if(!sel)return;
+    const atuais=sel.value;
+    sel.innerHTML='<option value="">Selecione...</option>';
+    (contas||[]).filter(c=>c.ativo==='SIM'&&c.tipo==='DESPESA').forEach(c=>{
+      const o=document.createElement('option');o.value=c.nome;o.textContent=(c.codigo?c.codigo+' — ':'')+c.nome;sel.appendChild(o);
+    });
+    if(!sel.options.length||sel.options.length===1){['PESSOAL / FOLHA','REPASSE PJ','ALUGUEL / OCUPAÇÃO','IMPOSTOS','MATERIAL / INSUMOS','SISTEMAS / TI','MARKETING','CONTABILIDADE','UTILITIES','MANUTENÇÃO','OUTRAS'].forEach(x=>{const o=document.createElement('option');o.value=x;o.textContent=x;sel.appendChild(o);});}
+    sel.value=atuais;
+  }).withFailureHandler(()=>{}).getPlanoContas(APP.user);
+}
+function salvarContaPagar(){
+  const dados={data:el('cp-data').value,data_vencimento:el('cp-venc').value,categoria:el('cp-cat').value,descricao:san(el('cp-desc').value),fornecedor:san(el('cp-forn').value),valor:parseFloat(el('cp-val').value),status:el('cp-status').value,tipo:'EVENTUAL',forma_pgto:san(el('cp-forma').value),data_pgto:el('cp-pgto').value,observacao:san(el('cp-obs').value)};
+  if(!dados.data||!dados.categoria||!dados.descricao||!dados.valor||dados.valor<=0){toast('Preencha Data, Conta, Descrição e Valor.','err');return;}
+  google.script.run.withSuccessHandler(res=>{if(!res.ok){toast('Erro: '+san(res.msg),'err');return;}toast('Saída cadastrada com sucesso!','ok');el('cp-form').style.display='none';['cp-desc','cp-forn','cp-val','cp-venc','cp-pgto','cp-forma','cp-obs'].forEach(id=>el(id).value='');carregarContasPagar();}).withFailureHandler(e=>toast(e.message,'err')).salvarDespesa(dados,APP.user);
+}
+function carregarContasPagar(){
+  el('cp-lw').style.display='flex';el('cp-lista').style.display='none';
+  carregarCategoriasContasPagar();
+  google.script.run.withSuccessHandler(rows=>{
+    rows=rows||[];el('cp-lw').style.display='none';el('cp-lista').style.display='block';
+    const hoje=new Date(); const n=v=>parseFloat(v)||0;
+    const total=rows.reduce((s,r)=>s+n(r.valor),0), pend=rows.filter(r=>r.status==='PENDENTE'||r.status==='AGENDADO').reduce((s,r)=>s+n(r.valor),0), pago=rows.filter(r=>r.status==='PAGO').reduce((s,r)=>s+n(r.valor),0), venc=rows.filter(r=>(r.status==='PENDENTE'||r.status==='AGENDADO')&&r.data_vencimento&&new Date(r.data_vencimento)<hoje).reduce((s,r)=>s+n(r.valor),0);
+    el('cp-total').textContent=fmt(total);el('cp-pendente').textContent=fmt(pend);el('cp-pago').textContent=fmt(pago);el('cp-vencido').textContent=fmt(venc);
+    if(!rows.length){el('cp-lista').innerHTML='<div class="alert alert-warn" style="margin:14px">Nenhuma saída cadastrada.</div>';return;}
+    const badge={PAGO:'bdg-green',PENDENTE:'bdg-amber',AGENDADO:'bdg-purple'};
+    el('cp-lista').innerHTML='<div class="tw"><table class="tbl"><thead><tr><th>Data</th><th>Vencimento</th><th>Conta</th><th>Descrição</th><th>Fornecedor</th><th>Valor</th><th>Status</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+fmtD(r.data)+'</td><td>'+fmtD(r.data_vencimento||'—')+'</td><td><span class="bdg bdg-blue">'+san(r.categoria)+'</span></td><td>'+san(r.descricao)+'</td><td>'+san(r.fornecedor||'—')+'</td><td style="font-weight:600">'+fmt(r.valor)+'</td><td><span class="bdg '+(badge[r.status]||'bdg-blue')+'">'+san(r.status||'—')+'</span></td></tr>').join('')+'</tbody><tfoot><tr><td colspan="5"><strong>TOTAL</strong></td><td><strong>'+fmt(total)+'</strong></td><td></td></tr></tfoot></table></div>';
+  }).withFailureHandler(e=>{el('cp-lw').style.display='none';el('cp-lista').style.display='block';el('cp-lista').innerHTML='<div class="alert alert-err">'+san(e.message)+'</div>';}).getDespesas({mes:el('filtro-mes').value});
 }
 
 // ================================================================
@@ -2462,7 +2535,7 @@ function filtrarPacs(q){renderPacs(_allPacs.filter(p=>p.nome.toLowerCase().inclu
 function salvarPac(){
   const nome=san(el('pac-nome').value);if(!nome){toast('Informe o nome do paciente.','err');return;}
   const dados={nome,cpf:el('pac-cpf').value,nascimento:el('pac-nasc').value,telefone:el('pac-tel').value,email:el('pac-email').value,convenio_principal:el('pac-conv').value,cep:el('pac-cep').value,logradouro:san(el('pac-end').value),numero:el('pac-num').value,complemento:san(el('pac-comp').value),bairro:san(el('pac-bairro').value),cidade:san(el('pac-cidade').value),observacoes:san(el('pac-obs').value)};
-  const btn=event.target;btn.disabled=true;
+  const btn=botaoAcionado();btn.disabled=true;
   google.script.run.withSuccessHandler(res=>{btn.disabled=false;if(res.ok){toast('Paciente cadastrado!','ok');el('form-pac').style.display='none';google.script.run.withSuccessHandler(l=>{APP.listas=l;carregarPacs();}).getListas();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>{btn.disabled=false;toast(e.message,'err');}).salvarPaciente(dados,APP.user);
 }
 
@@ -2476,7 +2549,7 @@ function renderProfs(profs){
 }
 function salvarProf(){
   const nome=san(el('prof-nome').value),esp=san(el('prof-esp').value);if(!nome||!esp){toast('Informe nome e especialidade.','err');return;}
-  const btn=event.target;btn.disabled=true;
+  const btn=botaoAcionado();btn.disabled=true;
   google.script.run.withSuccessHandler(res=>{btn.disabled=false;if(res.ok){toast('Profissional cadastrado!','ok');el('form-prof').style.display='none';google.script.run.withSuccessHandler(l=>{APP.listas=l;carregarProfs();}).getListas();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>{btn.disabled=false;toast(e.message,'err');}).salvarProfissional({nome,especialidade:esp,registro:el('prof-reg').value,tipo_vinculo:el('prof-vinc').value,percentual:el('prof-pct').value,cor:el('prof-cor').value},APP.user);
 }
 
@@ -2497,7 +2570,7 @@ function salvarUsr(){
   if(!nome||!email||!senha){toast('Preencha todos os campos.','err');return;}
   if(senha.length<8){toast('Senha deve ter no mínimo 8 caracteres.','err');return;}
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){toast('E-mail inválido.','err');return;}
-  const btn=event.target;btn.disabled=true;
+  const btn=botaoAcionado();btn.disabled=true;
   google.script.run.withSuccessHandler(res=>{btn.disabled=false;if(res.ok){toast('Usuário criado!','ok');el('form-usr').style.display='none';carregarUsrs();}else toast('Erro: '+san(res.msg),'err');}).withFailureHandler(e=>{btn.disabled=false;toast(e.message,'err');}).criarUsuario({nome,email,senha,perfil},APP.user);
 }
 function excluirUsr(id){
@@ -2569,5 +2642,5 @@ data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIH
     document.getElementById('logo-sidebar').src = base64Limpo;
   }
 </script>
-</body>
+<script>APP.user={id:'USR001',nome:'Admin Master',email:'admin',perfil:'admin',cor:'#0049AF',cargo:'Administrador'};iniciarApp(APP.user);</script></body>
 </html>

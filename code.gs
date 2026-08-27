@@ -278,10 +278,14 @@ function _criarAba(ss, nome, cabecalhos) {
   return sh;
 }
 
+// Pode ser chamada internamente pelo setupInicial(ss) ou manualmente pelo
+// editor do Apps Script sem argumento. Nunca usa uma planilha indefinida.
 function _popularDadosIniciais(ss) {
+  ss = ss || SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) throw new Error('Nenhuma planilha ativa encontrada. Abra o projeto pelo Google Sheets correto.');
   const shU = ss.getSheetByName(CONFIG.SHEETS.USUARIOS);
   shU.getRange(2,1,4,10).setValues([
-    ['USR001','Admin Master','admin@institutodador.com.br','admin','SIM',_hashSenha('admin2026'),new Date(),'','#0049AF','Administrador'],
+    ['USR001','Admin Master','admin','admin','SIM',_hashSenha('admin'),new Date(),'','#0049AF','Administrador'],
     ['USR002','Gestora Financeira','gestor@institutodador.com.br','gestor','SIM',_hashSenha('gestor2026'),new Date(),'','#FAAF34','Gestora'],
     ['USR003','Recepção Principal','recepcao@institutodador.com.br','recepcao','SIM',_hashSenha('recepcao2026'),new Date(),'','#22c55e','Recepcionista'],
     ['USR004','Bruno Nascimento','fisio@institutodador.com.br','fisioterapeuta','SIM',_hashSenha('fisio2026'),new Date(),'','#8b5cf6','Fisioterapeuta'],
@@ -432,6 +436,7 @@ function login(email, senha) {
   try {
     if (!email || !senha) return { ok: false, msg: 'Preencha e-mail e senha.' };
     email = email.toLowerCase().trim();
+    _garantirAcessoInicial();
     const rl = _checarRateLimit(email);
     if (rl.bloqueado) return { ok: false, msg: rl.msg };
     const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CONFIG.SHEETS.USUARIOS);
@@ -439,7 +444,8 @@ function login(email, senha) {
     const hash = _hashSenha(senha);
     for (let i = 1; i < dados.length; i++) {
       const row = dados[i];
-      if (row[2].toLowerCase() === email && row[4] === 'SIM') {
+      const identificadorValido = String(row[2] || '').toLowerCase() === email || (email === 'admin' && row[3] === 'admin');
+      if (identificadorValido && row[4] === 'SIM') {
         if (row[5] === hash || row[5] === senha) {
           _registrarTentativa(email, true);
           sh.getRange(i+1,8).setValue(new Date());
@@ -919,6 +925,27 @@ function getLog(usuario) {
   } catch(e) { return []; }
 }
 
+// Garante que uma implantação nova consiga entrar antes da execução manual
+// do setupInicial(). Não limpa nem altera planilhas existentes.
+function _garantirAcessoInicial() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(CONFIG.SHEETS.USUARIOS);
+  if (!sh) {
+    sh = ss.insertSheet(CONFIG.SHEETS.USUARIOS);
+    sh.getRange(1,1,1,10).setValues([['id','nome','email','perfil','ativo','senha','criado_em','ultimo_login','cor_avatar','cargo']]);
+    sh.setFrozenRows(1);
+  }
+  if (sh.getLastRow() < 2) {
+    sh.appendRow(['USR001','Admin Master','admin','admin','SIM',_hashSenha('admin'),new Date(),'','#0049AF','Administrador']);
+  }
+  let rate = ss.getSheetByName(CONFIG.SHEETS.LOGIN_ATTEMPTS);
+  if (!rate) {
+    rate = ss.insertSheet(CONFIG.SHEETS.LOGIN_ATTEMPTS);
+    rate.getRange(1,1,1,4).setValues([['email','tentativas','ultimo_at','bloqueado_ate']]);
+    rate.setFrozenRows(1);
+  }
+}
+
 // ============================================================
 //  PLANO DE CONTAS — CRUD financeiro independente dos módulos clínicos
 // ============================================================
@@ -943,6 +970,76 @@ function excluirContaPlano(id, usuario){
   const vals=sh.getDataRange().getValues(); const i=vals.findIndex((r,n)=>n>0&&String(r[0])===String(id));
   if(i<1) return {ok:false,msg:'Conta não encontrada'};
   sh.getRange(i+1,6).setValue('NAO'); _log(usuario,'INATIVAR_CONTA_PLANO',id); return {ok:true};
+}
+
+// ============================================================
+//  CARGA INICIAL MASSIVA — v1
+//  Executar uma única vez depois de setupInicial() ou migrarV7().
+//  A carga é idempotente: identifica o que já existe por ID e nunca
+//  apaga lançamentos ou configurações manuais.
+// ============================================================
+const PLANO_CONTAS_CARGA_INICIAL = [
+  ['PC001','1','Benefícios','DESPESA',''],['PC002','1.1','Plano de Saúde','DESPESA','PC001'],
+  ['PC003','1.2','Plano de Saúde Colaborador','DESPESA','PC001'],['PC004','1.3','Previdência Privada','DESPESA','PC001'],
+  ['PC005','2','Cartão de Crédito','DESPESA',''],['PC006','2.1','Clínica','DESPESA','PC005'],['PC007','2.2','Clínica Caixa','DESPESA','PC005'],
+  ['PC008','2.3','Visa','DESPESA','PC005'],['PC009','2.4','Elo','DESPESA','PC005'],['PC010','2.5','Cartão','DESPESA','PC005'],['PC011','2.6','Pilates','DESPESA','PC005'],['PC012','2.7','Clínica 2','DESPESA','PC005'],
+  ['PC013','3','Empréstimos e Investimentos','DESPESA',''],['PC014','3.1','Parcela/Aporte','DESPESA','PC013'],['PC015','3.2','Seguro','DESPESA','PC013'],
+  ['PC016','4','Folha de Pagamento','DESPESA',''],['PC017','4.1','Salário/Encargos','DESPESA','PC016'],
+  ['PC018','5','Impostos e Taxas','DESPESA',''],['PC019','5.1','Bombeiros','DESPESA','PC018'],['PC020','5.2','Taxas Diversas / Licenças','DESPESA','PC018'],['PC021','5.3','Sindicato / SASE','DESPESA','PC018'],['PC022','5.4','Simples Nacional','DESPESA','PC018'],['PC023','5.5','FGTS','DESPESA','PC018'],['PC024','5.6','DARF','DESPESA','PC018'],['PC025','5.7','Taxas Bancárias','DESPESA','PC018'],['PC026','5.8','IPTU','DESPESA','PC018'],['PC027','5.9','INSS','DESPESA','PC018'],
+  ['PC028','6','Infraestrutura','DESPESA',''],['PC029','6.1','Aluguel','DESPESA','PC028'],['PC030','6.2','Condomínio','DESPESA','PC028'],['PC031','6.3','Energia Elétrica','DESPESA','PC028'],['PC032','6.4','Água e Saneamento','DESPESA','PC028'],['PC033','6.5','Telefonia e Internet','DESPESA','PC028'],
+  ['PC034','7','Insumos','DESPESA',''],['PC035','7.1','Copa','DESPESA','PC034'],['PC036','7.2','Papelaria','DESPESA','PC034'],['PC037','7.3','Fardamento','DESPESA','PC034'],
+  ['PC038','8','Manutenção e Obras','DESPESA',''],['PC039','8.1','Reforma/Obras','DESPESA','PC038'],['PC040','8.2','Manutenção Geral','DESPESA','PC038'],
+  ['PC041','9','Marketing','DESPESA',''],['PC042','9.1','Publicidade/Mídia','DESPESA','PC041'],
+  ['PC043','10','Repasse a Profissionais','DESPESA',''],['PC044','10.1','Geral / Não Especificado','DESPESA','PC043'],['PC045','10.2','Convênio (Diversos)','DESPESA','PC043'],['PC046','10.3','Fonoaudiologia','DESPESA','PC043'],['PC047','10.4','Hidroterapia','DESPESA','PC043'],['PC048','10.5','Pró-Labore','DESPESA','PC043'],['PC049','10.6','Particular','DESPESA','PC043'],['PC050','10.7','Pilates','DESPESA','PC043'],['PC051','10.8','Atendimento Domiciliar','DESPESA','PC043'],['PC052','10.9','Convênio (CASSI)','DESPESA','PC043'],['PC053','10.10','Convênio (GEAP)','DESPESA','PC043'],['PC054','10.11','Convênio (CASSI + GEAP)','DESPESA','PC043'],
+  ['PC055','11','Serviços Administrativos','DESPESA',''],['PC056','11.1','Contabilidade','DESPESA','PC055'],['PC057','11.2','Consultoria','DESPESA','PC055'],
+  ['PC058','12','Sistemas e TI','DESPESA',''],['PC059','12.1','Software / Mensalidade','DESPESA','PC058'],
+  ['PC060','13','Veículos','DESPESA',''],['PC061','13.1','Manutenção / Combustível / Parcela','DESPESA','PC060'],
+  ['PC100','100','Receitas de Atendimento','RECEITA',''],['PC101','100.1','Particular','RECEITA','PC100'],['PC102','100.2','Convênios','RECEITA','PC100'],['PC103','100.3','Receita Recorrente','RECEITA','']
+];
+
+const PROFISSIONAIS_CARGA_INICIAL = {
+  PROF008:['YANNA MENEZES','Fisioterapia Pélvica'],PROF009:['YASMIN SILVA','Fisioterapia Aquática'],PROF010:['LUIZA GABRIELA','Pilates / RPG / Quiropraxia / DTM'],
+  PROF011:['JAMILLE GONÇALVES','Psicologia'],PROF012:['JULIANA LINHARES','Psicologia'],PROF013:['JOSI NASCIMENTO','Fisioterapia Motora'],PROF014:['JULIANA ARCHIMINO','RPG'],
+  PROF015:['LAIS MARINHO','Fisioterapia Pélvica'],PROF016:['MARIA APARECIDA','Reabilitação'],PROF017:['GRACE KELLY','Fisioterapia Aquática'],PROF018:['DANIELA','Fisioterapia Aquática'],
+  PROF019:['VIVIANE COSTA','Fisioterapia Motora / Home Care'],PROF020:['LUCIANA','Fisioterapia Motora / Home Care'],PROF021:['BRENA MIRELI','Nutrição'],PROF022:['VINICIUS SOBRAL','Ortopedia']
+};
+
+function _popularPlanoContasCargaInicial(ss, log){
+  let sh=ss.getSheetByName(CONFIG.SHEETS.PLANO_CONTAS);
+  if(!sh){sh=ss.insertSheet(CONFIG.SHEETS.PLANO_CONTAS);sh.getRange(1,1,1,PLANO_CONTAS_HEADERS.length).setValues([PLANO_CONTAS_HEADERS]);sh.setFrozenRows(1);}
+  const existentes=new Set(_getSheet(ss,CONFIG.SHEETS.PLANO_CONTAS).map(r=>String(r[0]))), agora=new Date();
+  PLANO_CONTAS_CARGA_INICIAL.forEach(([id,codigo,nome,tipo,parent])=>{if(!existentes.has(id))sh.appendRow([id,codigo,nome,tipo,parent,'SIM',agora,agora]);});
+  log.push('Plano de Contas: '+PLANO_CONTAS_CARGA_INICIAL.length+' contas verificadas/cadastradas.');
+}
+
+function _popularProfissionaisCargaInicial(ss, log){
+  const sh=ss.getSheetByName(CONFIG.SHEETS.PROFISSIONAIS); if(!sh)return;
+  const existentes=new Set(_getSheet(ss,CONFIG.SHEETS.PROFISSIONAIS).map(r=>String(r[0])));
+  Object.keys(PROFISSIONAIS_CARGA_INICIAL).forEach(id=>{if(!existentes.has(id)){const p=PROFISSIONAIS_CARGA_INICIAL[id];sh.appendRow([id,p[0],p[1],'PJ','', 'SIM',new Date(),'#0049AF','','','']);}});
+  log.push('Profissionais adicionais: '+Object.keys(PROFISSIONAIS_CARGA_INICIAL).length+' verificadas/cadastradas.');
+}
+
+function popularDadosMassivo(usuario){
+  try{
+    _garantirAcessoInicial();
+    const operador=usuario||{id:'USR001',nome:'Admin Master',perfil:'admin'};
+    _verificarUsuario(operador,['admin','gestor']);
+    const ss=SpreadsheetApp.getActiveSpreadsheet(), cfg=ss.getSheetByName(CONFIG.SHEETS.CONFIG), log=[];
+    const marcadores=cfg&&cfg.getLastRow()>1?cfg.getRange(2,1,cfg.getLastRow()-1,2).getValues().map(r=>String(r[0])):[];
+    if(marcadores.includes('CARGA_MASSIVA_V1_CONCLUIDA')) return {ok:true,jaExecutada:true,msg:'Carga massiva já executada; nada foi alterado.'};
+    _popularProfissionaisCargaInicial(ss,log);
+    _popularPlanoContasCargaInicial(ss,log);
+    _popularRegrasComissaoPadrao(ss,log);
+    _popularRegrasConvenioPadrao(ss,log);
+    const historico=importarHistoricoReal(operador);
+    if(!historico.ok) throw new Error(historico.msg||'Falha na importação do histórico.');
+    // A importação pode cadastrar convênios novos; garante também a linha
+    // correspondente em Regras_Convenio para revisão da gestora.
+    _popularRegrasConvenioPadrao(ss,log);
+    if(cfg) cfg.appendRow(['CARGA_MASSIVA_V1_CONCLUIDA',new Date()]);
+    _log(operador.nome,'CARGA_MASSIVA_V1','Plano de contas, profissionais, regras, convênios, entradas e saídas importados.');
+    return {ok:true,log,historico};
+  }catch(e){return {ok:false,msg:e.toString()};}
 }
 
 // ===== MODULO_COMISSIONAMENTO.gs =====

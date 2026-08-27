@@ -480,8 +480,8 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
     </div>
     <div class="sb-user">
       <div class="sb-greet" id="sb-greet">Bem-vindo(a)!</div>
-      <div class="sb-name" id="sb-name">—</div>
-      <span class="sb-badge" id="sb-badge">—</span>
+      <div class="sb-name" id="sb-name">Admin Master</div>
+      <span class="sb-badge" id="sb-badge">Admin</span>
     </div>
     <div class="nav-scroll">
       <div class="nav-sec">
@@ -504,7 +504,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
       </div>
       <div class="nav-sec">
       </div>
-      <div class="nav-sec nav-fin" style="display:none">
+      <div class="nav-sec nav-fin" style="display:block">
         <div class="nav-lbl">Financeiro</div>
         <div class="nav-item" data-page="particulares" onclick="goPage('particulares')">
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Lançamentos Particulares
@@ -534,7 +534,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.1-2.8-2.8L7 14"/></svg>Curva ABC
         </div>
       </div>
-      <div class="nav-sec nav-cad" style="display:none">
+      <div class="nav-sec nav-cad" style="display:block">
         <div class="nav-lbl">Cadastros</div>
         <div class="nav-item" data-page="pacientes" onclick="goPage('pacientes')">
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Pacientes
@@ -543,7 +543,7 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Profissionais
         </div>
       </div>
-      <div class="nav-sec nav-adm" style="display:none">
+      <div class="nav-sec nav-adm" style="display:block">
         <div class="nav-lbl">Administração</div>
         <div class="nav-item" data-page="conformidade" onclick="goPage('conformidade')">
           <svg class="ni-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Relatório de Equipe
@@ -608,7 +608,9 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 
   <!-- MAIN CONTENT -->
   <main class="main-content">
-    <section class="page" id="page-dashboard"></section>
+    <section class="page active" id="page-dashboard">
+      <div class="lw"><div class="spin"></div><div class="lw-t">Carregando dashboard...</div></div>
+    </section>
     <section class="page" id="page-checklist"></section>
     <section class="page" id="page-conformidade"></section>
     <section class="page" id="page-checklist-config"></section>
@@ -1068,7 +1070,9 @@ input,select,textarea,button{font-family:inherit;font-size:inherit}
 // ================================================================
 //  INSTITUTO DA DOR — JS v5.0  |  Gabillaud Consultoria 2026
 // ================================================================
-const APP = { user:null, listas:null, paginaAtual:'dashboard', agData:new Date(), agendamentos:[], compB64:null, compNome:'', loginAttempts:0, lastAttempt:0, checkDefs:[], dashCtx:null };
+// `var` + window.APP: o HtmlService injeta scripts por document.write e
+// scripts posteriores precisam enxergar este estado no escopo global.
+var APP = window.APP || { user:null, listas:null, paginaAtual:'dashboard', agData:new Date(), agendamentos:[], compB64:null, compNome:'', loginAttempts:0, lastAttempt:0, checkDefs:[], dashCtx:null };
 const MESES = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
 const MESES_ABR = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const CORES = ['#0049AF','#FAAF34','#0f9d76','#e63946','#9b5de5','#06d6a0','#e76f51','#fb8500','#457b9d','#c77dff','#52b788','#ff6b6b'];
@@ -1082,6 +1086,12 @@ const fmt = v => 'R$\u00a0'+Number(v||0).toLocaleString('pt-BR',{minimumFraction
 const fmtD = d => d ? new Date(d).toLocaleDateString('pt-BR') : '—';
 const today = () => new Date().toISOString().slice(0,10);
 const san = s => String(s||'').replace(/[<>"'`]/g,'').trim().slice(0,500);
+window.addEventListener('error',e=>{
+  const msg=e&&e.message?e.message:'Erro inesperado no aplicativo.';
+  const c=el('page-'+(APP.paginaAtual||'dashboard'));
+  if(c && !c.innerHTML.trim()) c.innerHTML='<div class="alert alert-err">Erro no aplicativo: '+san(msg)+'</div>';
+  console.error('[Instituto da Dor]',e.error||e);
+});
 
 function toast(msg,tipo){
   const t=el('toast');
@@ -1110,7 +1120,7 @@ function fazerLogin(){
   el('login-txt').textContent='Autenticando...';
   APP.lastAttempt=now;
   google.script.run
-    .withSuccessHandler(res=>{
+    .withSuccessHandler(function(res){
       btn.disabled=false; el('login-txt').textContent='Entrar no Sistema';
       if(res.ok){APP.loginAttempts=0;APP.user=res.user;iniciarApp(res.user);}
       else{APP.loginAttempts++;errLogin(res.msg||'Credenciais inválidas.');}
@@ -1123,12 +1133,13 @@ el('e-senha').addEventListener('keydown',e=>{if(e.key==='Enter')fazerLogin();});
 el('e-email').addEventListener('keydown',e=>{if(e.key==='Enter')el('e-senha').focus();});
 
 function iniciarApp(user){
+  APP.user=user||{id:'USR001',nome:'Admin Master',email:'admin',perfil:'admin'};
   el('tela-login').style.display='none';
   el('app').style.display='grid';
   el('sb-greet').textContent=saudacao();
-  el('sb-name').textContent=user.nome;
-  el('sb-badge').textContent=PERFIS_LBL[user.perfil]||user.perfil;
-  const p=user.perfil;
+  el('sb-name').textContent=APP.user.nome||'Usuário';
+  el('sb-badge').textContent=PERFIS_LBL[APP.user.perfil]||APP.user.perfil||'Admin';
+  const p=APP.user.perfil;
   document.querySelectorAll('.nav-fin').forEach(s=>s.style.display=(p==='admin'||p==='gestor')?'block':'none');
   document.querySelectorAll('.nav-cad').forEach(s=>s.style.display=(p==='admin'||p==='gestor')?'block':'none');
   document.querySelectorAll('.nav-adm').forEach(s=>s.style.display=p==='admin'?'block':'none');
@@ -1198,7 +1209,19 @@ function toggleSidebar(){el('sidebar').classList.toggle('open');el('sb-ov').clas
 //  LISTAS
 // ================================================================
 function carregarListas(){
-  google.script.run.withSuccessHandler(l=>{APP.listas=l;if(APP.paginaAtual==='novo-particular')popularDropsPart();if(APP.paginaAtual==='nova-guia')popularDropsGuia();}).getListas();
+  google.script.run
+    .withSuccessHandler(l=>{
+      APP.listas=l||{profissionais:[],pacientes:[],servicos:[],convenios:[],codigos:[]};
+      if(APP.paginaAtual==='novo-particular')popularDropsPart();
+      if(APP.paginaAtual==='nova-guia')popularDropsGuia();
+    })
+    .withFailureHandler(e=>{
+      APP.listas={profissionais:[],pacientes:[],servicos:[],convenios:[],codigos:[]};
+      toast('Não foi possível carregar as listas: '+san(e&&e.message||'erro no servidor'),'err');
+      if(APP.paginaAtual==='novo-particular')popularDropsPart();
+      if(APP.paginaAtual==='nova-guia')popularDropsGuia();
+    })
+    .getListas();
 }
 
 // ================================================================
@@ -1207,9 +1230,12 @@ function carregarListas(){
 function renderDashboard(){
   const cont=el('page-dashboard');
   cont.innerHTML='<div class="lw"><div class="spin"></div><div class="lw-t">Carregando painel...</div></div>';
+  let finalizado=false;
+  const limite=setTimeout(()=>{if(!finalizado)cont.innerHTML='<div class="alert alert-err"><div>O servidor demorou para responder. Atualize a página ou verifique a implantação do Apps Script.</div></div>';},15000);
   const mes=el('filtro-mes').value;
   google.script.run
     .withSuccessHandler(d=>{
+      finalizado=true;clearTimeout(limite);
       if(!d||!d.ok){cont.innerHTML='<div class="alert alert-err"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div>'+(d&&d.msg?san(d.msg):'Erro ao carregar')+'</div></div>';return;}
       APP.dashCtx=d;
       const pp=APP.user?APP.user.perfil:'recepcao';
@@ -1217,8 +1243,8 @@ function renderDashboard(){
       else if(pp==='gestor') buildDashGestor(d,cont);
       else buildDashRecepcao(d,cont);
     })
-    .withFailureHandler(()=>{cont.innerHTML='<div class="alert alert-err"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg><div>Erro de conexão.</div></div>';})
-    .getDashboardData({mes});
+    .withFailureHandler(e=>{finalizado=true;clearTimeout(limite);cont.innerHTML='<div class="alert alert-err"><div>Erro ao carregar: '+san(e&&e.message||'conexão indisponível')+'</div></div>';})
+    .getDashboardDataRapido({mes},APP.user);
 }
 
 function kpi(mod,ico,lbl,val,sub){
@@ -1334,7 +1360,7 @@ function buildDashRecepcao(d,cont){
     <div class="pb" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
       <button class="btn btn-p" style="flex-direction:column;padding:14px;height:auto;gap:6px" onclick="goPage('novo-particular')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span style="font-size:.78rem">Lançar Pagamento</span></button>
       <button class="btn btn-o" style="flex-direction:column;padding:14px;height:auto;gap:6px" onclick="goPage('nova-guia')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span style="font-size:.78rem">Registrar Guia</span></button>
-      <button class="btn btn-o" style="flex-direction:column;padding:14px;height:auto;gap:6px" onclick="goPage('agenda')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style="font-size:.78rem">Ver Agenda</span></button>
+      <button class="btn btn-o" style="flex-direction:column;padding:14px;height:auto;gap:6px" onclick="goPage('novo-particular')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span style="font-size:.78rem">Novo lançamento</span></button>
       <button class="btn btn-g" style="flex-direction:column;padding:14px;height:auto;gap:6px" onclick="goPage('checklist')"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span style="font-size:.78rem">Meu Checklist</span></button>
     </div>
   </div>
@@ -1462,7 +1488,7 @@ function renderConformidade(){
   const cont=el('page-conformidade');
   cont.innerHTML='<div class="lw"><div class="spin"></div><div class="lw-t">Carregando relatório...</div></div>';
   google.script.run
-    .withSuccessHandler(res=>{
+    .withSuccessHandler(function(res){
       if(!res.ok||!res.dados.length){cont.innerHTML='<div class="page-hd"><h2>Relatório de Equipe</h2></div><div class="alert alert-info"><svg class="alrt-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg><div>Nenhum dado de checklist nos últimos 7 dias.</div></div>';return;}
       const d=res.dados;
       const media=d.length?Math.round(d.reduce((s,x)=>s+x.pct,0)/d.length):0;
@@ -2642,5 +2668,28 @@ data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIH
     document.getElementById('logo-sidebar').src = base64Limpo;
   }
 </script>
-<script>APP.user={id:'USR001',nome:'Admin Master',email:'admin',perfil:'admin',cor:'#0049AF',cargo:'Administrador'};iniciarApp(APP.user);</script></body>
+<script>
+// Bootstrap robusto para o Web App do Apps Script. O shell pode aparecer
+// antes das chamadas server-side, mas o usuário e as telas só são liberados
+// depois que o DOM estiver pronto.
+(function iniciarAplicacaoQuandoPronto(){
+  const usuarioPadrao={id:'USR001',nome:'Admin Master',email:'admin',perfil:'admin',cor:'#0049AF',cargo:'Administrador'};
+  const iniciar=()=>{
+    if(typeof iniciarApp!=='function'||typeof APP==='undefined'){
+      setTimeout(iniciar,50); return;
+    }
+    if(APP.user) return;
+    APP.user=usuarioPadrao;
+    try { iniciarApp(APP.user); }
+    catch(e){
+      const c=document.getElementById('page-dashboard');
+      if(c)c.innerHTML='<div class="alert alert-err">Falha ao iniciar o aplicativo: '+String(e.message||e).replace(/[<>]/g,'')+'</div>';
+      console.error('[Instituto da Dor] bootstrap',e);
+    }
+  };
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',iniciar);
+  else iniciar();
+  window.addEventListener('load',()=>{ if(window.APP && !window.APP.user) iniciar(); });
+})();
+</script></body>
 </html>

@@ -93,8 +93,10 @@ const CONFIG = {
 //  PONTO DE ENTRADA WEB
 // ============================================================
 function doGet(e) {
-  return HtmlService.createTemplateFromFile('index')
-    .evaluate()
+  // O index não usa tags de template do Apps Script. Servi-lo diretamente
+  // evita a reescrita adicional do HtmlService (document.write), que podia
+  // corromper o bloco JavaScript grande e gerar "missing )" no VM do iframe.
+  return HtmlService.createHtmlOutputFromFile('index')
     .setTitle('Instituto da Dor — Gestão v6.0')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
@@ -2092,6 +2094,27 @@ function getDashboardData(filtros, usuario) {
       agendaHoje, conformidade: conf,
       statusLotes: statusLotes.porStatus||{}, resumoGlosas
     };
+  } catch(e) { return {ok:false,msg:e.toString()}; }
+}
+
+// Versão leve para a primeira pintura do Web App. Consultas detalhadas
+// (glosas, lotes, conformidade e projeções) não podem bloquear o dashboard.
+function getDashboardDataRapido(filtros, usuario) {
+  try {
+    _verificarUsuario(usuario, ['admin','gestor','recepcao','fisioterapeuta']);
+    const mes=(filtros&&filtros.mes)||'todos';
+    const particulares=getParticulares({mes});
+    const guias=getGuias({mes});
+    const despesas=getDespesas({mes});
+    const recParticular=particulares.reduce((s,r)=>s+_sanNum(r.valor),0);
+    const recConvenio=guias.reduce((s,r)=>s+_sanNum(r.valor_total),0);
+    const despesasTotal=despesas.reduce((s,r)=>s+_sanNum(r.valor),0);
+    const porMes={}; MESES_ORDEM.forEach(m=>porMes[m]={particular:0,convenio:0,despesa:0});
+    particulares.forEach(r=>{if(porMes[r.mes])porMes[r.mes].particular+=_sanNum(r.valor);});
+    guias.forEach(r=>{if(porMes[r.mes])porMes[r.mes].convenio+=_sanNum(r.valor_total);});
+    despesas.forEach(r=>{if(porMes[r.mes])porMes[r.mes].despesa+=_sanNum(r.valor);});
+    const totalFaturado=recParticular+recConvenio;
+    return {ok:true,kpis:{totalFaturado,totalRecebido:recParticular,totalGlosado:guias.reduce((s,r)=>s+_sanNum(r.valor_glosado),0),totalAReceber:guias.filter(r=>r.status!=='Pago').reduce((s,r)=>s+_sanNum(r.valor_total)-_sanNum(r.valor_glosado),0),recParticular,recConvenio,totalDespesas:despesasTotal,resultado:recParticular-despesasTotal,qtdGuiasPendentes:guias.filter(r=>r.status==='Pendente').length,ticketMedio:particulares.length?recParticular/particulares.length:0,metaAnual:CONFIG.META_ANUAL,pctMeta:(totalFaturado/CONFIG.META_ANUAL*100).toFixed(1)},porMes,porConvenio:[],porProfissional:{},aVencer:[],agendaHoje:[],conformidade:{ok:true,dados:[]},statusLotes:{},resumoGlosas:{ok:true,totalGlosado:0}};
   } catch(e) { return {ok:false,msg:e.toString()}; }
 }
 
